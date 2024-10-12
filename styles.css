@@ -1,0 +1,51 @@
+body { 
+  font-family: Arial, sans-serif; 
+} 
+#app { 
+  width: 80%; 
+  margin: 0 auto; 
+} 
+input, select { 
+  margin-bottom: 1em; 
+} 
+button { 
+  padding: 0.5em 1em; 
+  font-size: 1em; 
+  cursor: pointer; 
+} 
+button:hover { 
+  background-color: #ddd; 
+} 
+table { 
+  width: 100%; 
+  border-collapse: collapse; 
+} 
+th, td { 
+  border: 1px solid #ddd; 
+  padding: 8px; 
+  text-align: left; 
+} 
+th { 
+  background-color: #f0f0f0; 
+} 
+tr:nth-child(even) { 
+  background-color: #f2f2f2; 
+} 
+tr:nth-child(odd) { 
+  background-color: #e9ecef; 
+} 
+tr:hover { 
+  background-color: #ddd; 
+} 
+td, th { 
+  padding: 10px; 
+} 
+tr.navio { 
+  background-color: #d1ecf1; 
+} 
+tr.olapa { 
+  background-color: #d4edda; 
+} 
+tr.encavalado { 
+  background-color: #ffcccc !important; 
+} 

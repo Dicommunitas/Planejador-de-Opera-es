@@ -1,0 +1,67 @@
+<!DOCTYPE html> 
+<html lang="pt-BR"> 
+<head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>Planejador de Operações</title> 
+  <link rel="stylesheet" href="styles.css"> 
+</head> 
+<body> 
+  <div id="app"> 
+    <h1>Planejador de Operações</h1> 
+     
+    <div id="totals"> 
+      <label for="totalNavio">Total Programado para Navio:</label> 
+      <input type="number" id="totalNavio" value="0"> 
+      <label for="totalOlapa">Total Programado para Olapa:</label> 
+      <input type="number" id="totalOlapa" value="0"> 
+      <button id="recalculateButton">Recalcular Quantidades</button> 
+    </div> 
+     
+    <div id="data-entry"> 
+      <h2>Adicionar Operação</h2> 
+      <input type="text" id="tank" placeholder="Nome do Tanque"> 
+      <input type="number" id="volume" placeholder="Volume (m3)"> 
+      <input type="number" id="flowRate" placeholder="Vazão (m3/h)"> 
+      <select id="direction"> 
+        <option value="receber">Receber</option> 
+        <option value="enviar">Enviar</option> 
+      </select> 
+      <select id="operationType"> 
+        <option value="navio">Navio</option> 
+        <option value="olapa">Olapa</option> 
+      </select> 
+      <input type="datetime-local" id="startTime"> 
+      <button id="addOperationButton">Adicionar Operação</button> 
+    </div> 
+     
+    <div id="optimization-results"> 
+      <h2>Operações Planejadas</h2> 
+      <table id="operationsTable"> 
+        <thead> 
+          <tr> 
+            <th>Tanque</th> 
+            <th>Volume (m3)</th> 
+            <th>Vazão (m3/h)</th> 
+            <th>Direção</th> 
+            <th>Tipo de Operação</th> 
+            <th>Início</th> 
+            <th>Término</th> 
+            <th>Falta para Navio</th> 
+            <th>Falta para Olapa</th> 
+            <th>Ações</th> 
+          </tr> 
+        </thead> 
+        <tbody></tbody> 
+      </table> 
+    </div> 
+  </div> 
+ 
+  <script src="addOperation.js"></script> 
+  <script src="clearForm.js"></script> 
+  <script src="updateFalta.js"></script> 
+  <script src="sortOperations.js"></script> 
+  <script src="checkOverlap.js"></script> 
+  <script src="main.js"></script> 
+</body> 
+</html> 
