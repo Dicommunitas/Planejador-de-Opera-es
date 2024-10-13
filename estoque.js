@@ -22,21 +22,28 @@ document.addEventListener('DOMContentLoaded', () => {
       // Limpa a tabela antes de adicionar novos dados 
       tableBody.innerHTML = ''; 
  
-      // Itera sobre as linhas 11 até 15 
-      for (let i = 11; i <= 15; i++) { 
-        const produto = worksheet[`D${i}`] ? worksheet[`D${i}`].v : ''; 
-        const tanque = worksheet[`E${i}`] ? worksheet[`E${i}`].v : ''; 
-        const disponivelEnvio = worksheet[`V${i}`] ? worksheet[`V${i}`].v : ''; 
-        const espacoRecebimento = worksheet[`Y${i}`] ? worksheet[`Y${i}`].v : ''; 
+      // Itera sobre as linhas 11 até 80 
+      for (let i = 11; i <= 80; i++) { 
+        const produto = getCellValue(worksheet, `D${i}`); 
+        const tanque = getCellValue(worksheet, `E${i}`); 
+        const disponivelEnvio = getCellValue(worksheet, `V${i}`); 
+        const espacoRecebimento = getCellValue(worksheet, `Y${i}`); 
  
-        // Cria uma nova linha na tabela 
-        const row = tableBody.insertRow(); 
-        row.insertCell(0).textContent = produto; 
-        row.insertCell(1).textContent = tanque; 
-        row.insertCell(2).textContent = disponivelEnvio; 
-        row.insertCell(3).textContent = espacoRecebimento; 
+        // Verifica se a linha tem um tanque válido 
+        if (tanque && tanque !== 'TOTAL' && !isNaN(disponivelEnvio) && !isNaN(espacoRecebimento)) { 
+          const row = tableBody.insertRow(); 
+          row.insertCell(0).textContent = produto; 
+          row.insertCell(1).textContent = tanque; 
+          row.insertCell(2).textContent = disponivelEnvio; 
+          row.insertCell(3).textContent = espacoRecebimento; 
+        } 
       } 
     }; 
     reader.readAsArrayBuffer(file); 
+  } 
+ 
+  function getCellValue(worksheet, cellAddress) { 
+    const cell = worksheet[cellAddress]; 
+    return cell ? cell.v : ''; 
   } 
 }); 
