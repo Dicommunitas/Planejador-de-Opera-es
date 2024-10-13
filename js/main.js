@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadComponents(); 
   setupEventListeners(); 
   loadStockData(); 
+  populateTankSelect(); 
 }); 
  
 function loadComponents() { 
@@ -27,6 +28,7 @@ function setupEventListeners() {
     sortOperations(); 
     checkOverlap(); 
     updateFalta(); 
+    updateStockDisplay(); 
     clearForm(); 
   }); 
  
@@ -38,16 +40,62 @@ function setupEventListeners() {
 } 
  
 function loadStockData() { 
-  const stockData = JSON.parse(localStorage.getItem('stockData') || '[]'); 
+  const stockData = getStockData(); 
+  updateStockDisplay(); 
+  console.log('Dados do estoque carregados:', stockData); 
+} 
+ 
+function populateTankSelect() { 
+  const tankSelect = document.getElementById('tank'); 
+  const stockData = getStockData(); 
+     
+  tankSelect.innerHTML = '<option value="">Selecione um tanque</option>'; 
+  stockData.forEach(item => { 
+    const option = document.createElement('option'); 
+    option.value = item.tanque.trim(); 
+    option.textContent = `${item.tanque.trim()} - ${item.produto.trim()}`; 
+    tankSelect.appendChild(option); 
+  }); 
+} 
+ 
+function updateStockDisplay() { 
+  const stockData = getStockData(); 
   const stockTableBody = document.querySelector('#stockDataTable tbody'); 
+  stockTableBody.innerHTML = ''; 
  
   stockData.forEach(item => { 
     const row = stockTableBody.insertRow(); 
-    row.insertCell(0).textContent = item.produto; 
-    row.insertCell(1).textContent = item.tanque; 
-    row.insertCell(2).textContent = item.disponivelEnvio; 
-    row.insertCell(3).textContent = item.espacoRecebimento; 
+    row.innerHTML = ` 
+      <td>${item.produto.trim()}</td> 
+      <td>${item.tanque.trim()}</td> 
+      <td>${item.disponivelEnvio.toFixed(2)}</td> 
+      <td>${item.espacoRecebimento.toFixed(2)}</td> 
+    `; 
   }); 
+} 
  
-  localStorage.removeItem('stockData'); 
+// Função para salvar dados do estoque 
+function saveStockData(stockData) { 
+  const processedStockData = stockData.map(item => ({ 
+    ...item, 
+    disponivelEnvio: parseFloat(item.disponivelEnvio), 
+    espacoRecebimento: parseFloat(item.espacoRecebimento), 
+    produto: item.produto.trim(), 
+    tanque: item.tanque.trim() 
+  })); 
+  localStorage.setItem('stockData', JSON.stringify(processedStockData)); 
+  updateStockDisplay(); 
+  populateTankSelect(); 
+} 
+ 
+// Função para obter dados do estoque 
+function getStockData() { 
+  const stockData = JSON.parse(localStorage.getItem('stockData') || '[]'); 
+  return stockData.map(item => ({ 
+    ...item, 
+    disponivelEnvio: parseFloat(item.disponivelEnvio), 
+    espacoRecebimento: parseFloat(item.espacoRecebimento), 
+    produto: item.produto.trim(), 
+    tanque: item.tanque.trim() 
+  })); 
 } 

@@ -9,9 +9,17 @@ function updateFalta() {
   operationsTableBody.querySelectorAll('tr').forEach(row => { 
     row.classList.remove('navio', 'olapa'); 
      
-    const volume = parseFloat(row.cells[1].textContent); 
-    const direction = row.cells[3].textContent; 
-    const operationType = row.cells[4].textContent; 
+    const disponivelEnvio = parseFloat(row.cells[2].textContent); 
+    const espacoRecebimento = parseFloat(row.cells[3].textContent); 
+    const direction = row.cells[5].textContent; 
+    const operationType = row.cells[6].textContent; 
+ 
+    let volume; 
+    if (direction === 'enviar') { 
+      volume = disponivelEnvio; 
+    } else { 
+      volume = espacoRecebimento; 
+    } 
  
     if (operationType === 'navio') { 
       faltaNavio += (direction === 'receber' ? -volume : volume); 
@@ -21,7 +29,7 @@ function updateFalta() {
       row.classList.add('olapa'); 
     } 
  
-    row.cells[7].textContent = faltaNavio.toFixed(2); 
-    row.cells[8].textContent = faltaOlapa.toFixed(2); 
+    row.cells[9].textContent = faltaNavio.toFixed(2); 
+    row.cells[10].textContent = faltaOlapa.toFixed(2); 
   }); 
 } 
