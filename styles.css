@@ -81,3 +81,18 @@ nav a:hover {
 tr.encavalado { 
   background-color: #ffcccc !important; 
 } 
+
+#dropZone { 
+  border: 2px dashed #ccc; 
+  border-radius: 20px; 
+  width: 480px; 
+  font-family: sans-serif; 
+  margin: 100px auto; 
+  padding: 20px; 
+  text-align: center; 
+} 
+ 
+#dropZone.dragover { 
+  background-color: #e1e7f0; 
+  color: #1f3c58; 
+} 

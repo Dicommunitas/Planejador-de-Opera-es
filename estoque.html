@@ -15,7 +15,21 @@
       <a href="index.html">Voltar para o Planejador de Operações</a> 
     </nav> 
  
-    <input type="file" id="fileInput" accept=".xls,.xlsx"> 
+    <div id="importInstructions"> 
+      <h2>Como obter o arquivo do sistema BDEMQ:</h2> 
+      <ol> 
+        <li>Acesse o sistema BDEMQ através do link interno da Petrobras.</li> 
+        <li>Navegue até a seção de relatórios ou extração de dados.</li> 
+        <li>Selecione o relatório de estoque de tanques.</li> 
+        <li>Escolha o formato de arquivo Excel (.xls ou .xlsx).</li> 
+        <li>Clique no botão de download para salvar o arquivo em seu computador.</li> 
+      </ol> 
+    </div> 
+ 
+    <div id="dropZone"> 
+      Arraste e solte o arquivo Excel aqui ou clique para selecionar 
+      <input type="file" id="fileInput" accept=".xls,.xlsx" style="display: none;"> 
+    </div> 
     <button id="importButton">Importar Dados</button> 
  
     <div id="stockVisualization"> 

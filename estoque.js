@@ -2,6 +2,36 @@ document.addEventListener('DOMContentLoaded', () => {
   const fileInput = document.getElementById('fileInput'); 
   const importButton = document.getElementById('importButton'); 
   const tableBody = document.querySelector('#stockTable tbody'); 
+  const dropZone = document.getElementById('dropZone'); 
+ 
+  // Configuração do drag and drop 
+  dropZone.addEventListener('dragover', (e) => { 
+    e.preventDefault(); 
+    dropZone.classList.add('dragover'); 
+  }); 
+ 
+  dropZone.addEventListener('dragleave', () => { 
+    dropZone.classList.remove('dragover'); 
+  }); 
+ 
+  dropZone.addEventListener('drop', (e) => { 
+    e.preventDefault(); 
+    dropZone.classList.remove('dragover'); 
+    if (e.dataTransfer.files.length) { 
+      fileInput.files = e.dataTransfer.files; 
+      handleFile(e.dataTransfer.files[0]); 
+    } 
+  }); 
+ 
+  dropZone.addEventListener('click', () => { 
+    fileInput.click(); 
+  }); 
+ 
+  fileInput.addEventListener('change', (e) => { 
+    if (e.target.files.length) { 
+      handleFile(e.target.files[0]); 
+    } 
+  }); 
  
   importButton.addEventListener('click', () => { 
     if (fileInput.files.length > 0) { 
