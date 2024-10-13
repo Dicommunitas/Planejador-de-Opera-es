@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => { 
   const fileInput = document.getElementById('fileInput'); 
   const importButton = document.getElementById('importButton'); 
+  const cellValueSpan = document.getElementById('cellValue'); 
  
   importButton.addEventListener('click', () => { 
     if (fileInput.files.length > 0) { 
@@ -9,50 +10,22 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Por favor, selecione um arquivo antes de importar.'); 
     } 
   }); 
-}); 
  
-function handleFile(file) { 
-  const reader = new FileReader(); 
-  reader.onload = function(e) { 
-    const data = new Uint8Array(e.target.result); 
-    const workbook = XLSX.read(data, {type: 'array'}); 
-    const firstSheetName = workbook.SheetNames[0]; 
-    const worksheet = workbook.Sheets[firstSheetName]; 
-    const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1}); 
-    processExcelData(jsonData); 
-  }; 
-  reader.readAsArrayBuffer(file); 
-} 
+  function handleFile(file) { 
+    const reader = new FileReader(); 
+    reader.onload = function(e) { 
+      const data = new Uint8Array(e.target.result); 
+      const workbook = XLSX.read(data, {type: 'array'}); 
+      const firstSheetName = workbook.SheetNames[0]; 
+      const worksheet = workbook.Sheets[firstSheetName]; 
+       
+      // Obtém o valor da célula D11 
+      const cellD11 = worksheet['D11']; 
+      const cellValue = cellD11 ? cellD11.v : 'Não encontrado'; 
  
-function processExcelData(data) { 
-  const stockData = []; 
-  for (let i = 7; i < data.length; i++) { 
-    const row = data[i]; 
-    if (row[0] && row[1] && row[2]) { 
-      stockData.push({ 
-        tipoProduto: row[0], 
-        produto: row[1], 
-        tanque: row[2], 
-        volTotalAmbiente: row[10], 
-        volEspacoOper: row[16] 
-      }); 
-    } 
+      // Exibe o valor na página 
+      cellValueSpan.textContent = cellValue; 
+    }; 
+    reader.readAsArrayBuffer(file); 
   } 
-  updateStockVisualization(stockData); 
-} 
- 
-function updateStockVisualization(stockData) { 
-  const tableBody = document.querySelector('#stockTable tbody'); 
-  tableBody.innerHTML = ''; 
-  stockData.forEach(item => { 
-    const row = document.createElement('tr'); 
-    row.innerHTML = ` 
-      <td>${item.tipoProduto}</td> 
-      <td>${item.produto}</td> 
-      <td>${item.tanque}</td> 
-      <td>${item.volTotalAmbiente}</td> 
-      <td>${item.volEspacoOper}</td> 
-    `; 
-    tableBody.appendChild(row); 
-  }); 
-} 
+}); 
