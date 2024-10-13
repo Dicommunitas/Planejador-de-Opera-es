@@ -3,6 +3,40 @@ document.addEventListener('DOMContentLoaded', () => {
   const importButton = document.getElementById('importButton'); 
  
   importButton.addEventListener('click', () => { 
+    if (fileInput.files.length > 0) { 
+      importExcelData(fileInput.files[0]); 
+    } else { 
+      alert('Por favor, selecione um arquivo antes de importar.'); 
+    } 
+  }); 
+ 
+  fileInput.addEventListener('change', () => { 
+    if (fileInput.files.length > 0) { 
+      importButton.disabled = false; 
+    } else { 
+      importButton.disabled = true; 
+    } 
+  }); 
+}); 
+ 
+function importExcelData(file) { 
+  const reader = new FileReader(); 
+  reader.onload = function(e) { 
+    const data = new Uint8Array(e.target.result); 
+    const workbook = XLSX.read(data, {type: 'array'}); 
+    const firstSheetName = workbook.SheetNames[0]; 
+    const worksheet = workbook.Sheets[firstSheetName]; 
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1}); 
+    processExcelData(jsonData); 
+  }; 
+  reader.readAsArrayBuffer(file); 
+} 
+ 
+document.addEventListener('DOMContentLoaded', () => { 
+  const fileInput = document.getElementById('fileInput'); 
+  const importButton = document.getElementById('importButton'); 
+ 
+  importButton.addEventListener('click', () => { 
     fileInput.click(); 
   }); 
  
