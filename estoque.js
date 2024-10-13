@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => { 
   const fileInput = document.getElementById('fileInput'); 
   const importButton = document.getElementById('importButton'); 
-  const cellValueSpan = document.getElementById('cellValue'); 
+  const tableBody = document.querySelector('#stockTable tbody'); 
  
   importButton.addEventListener('click', () => { 
     if (fileInput.files.length > 0) { 
@@ -19,12 +19,23 @@ document.addEventListener('DOMContentLoaded', () => {
       const firstSheetName = workbook.SheetNames[0]; 
       const worksheet = workbook.Sheets[firstSheetName]; 
        
-      // Obtém o valor da célula D11 
-      const cellD11 = worksheet['D11']; 
-      const cellValue = cellD11 ? cellD11.v : 'Não encontrado'; 
+      // Limpa a tabela antes de adicionar novos dados 
+      tableBody.innerHTML = ''; 
  
-      // Exibe o valor na página 
-      cellValueSpan.textContent = cellValue; 
+      // Itera sobre as linhas 11 até 15 
+      for (let i = 11; i <= 15; i++) { 
+        const produto = worksheet[`D${i}`] ? worksheet[`D${i}`].v : ''; 
+        const tanque = worksheet[`E${i}`] ? worksheet[`E${i}`].v : ''; 
+        const disponivelEnvio = worksheet[`V${i}`] ? worksheet[`V${i}`].v : ''; 
+        const espacoRecebimento = worksheet[`Y${i}`] ? worksheet[`Y${i}`].v : ''; 
+ 
+        // Cria uma nova linha na tabela 
+        const row = tableBody.insertRow(); 
+        row.insertCell(0).textContent = produto; 
+        row.insertCell(1).textContent = tanque; 
+        row.insertCell(2).textContent = disponivelEnvio; 
+        row.insertCell(3).textContent = espacoRecebimento; 
+      } 
     }; 
     reader.readAsArrayBuffer(file); 
   } 
