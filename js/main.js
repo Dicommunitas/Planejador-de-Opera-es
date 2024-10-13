@@ -28,7 +28,7 @@ function setupEventListeners() {
     sortOperations(); 
     checkOverlap(); 
     updateFalta(); 
-    updateStockDisplay(); 
+    updateCurrentStockDisplay(); 
     clearForm(); 
   }); 
  
@@ -41,14 +41,15 @@ function setupEventListeners() {
  
 function loadStockData() { 
   const stockData = getStockData(); 
-  updateStockDisplay(); 
+  updateInitialStockDisplay(stockData); 
+  updateCurrentStockDisplay(stockData); 
   console.log('Dados do estoque carregados:', stockData); 
 } 
  
 function populateTankSelect() { 
   const tankSelect = document.getElementById('tank'); 
   const stockData = getStockData(); 
-     
+    
   tankSelect.innerHTML = '<option value="">Selecione um tanque</option>'; 
   stockData.forEach(item => { 
     const option = document.createElement('option'); 
@@ -58,9 +59,17 @@ function populateTankSelect() {
   }); 
 } 
  
-function updateStockDisplay() { 
-  const stockData = getStockData(); 
-  const stockTableBody = document.querySelector('#stockDataTable tbody'); 
+function updateInitialStockDisplay(stockData) { 
+  updateStockTable('#initialStockDataTable', stockData); 
+} 
+ 
+function updateCurrentStockDisplay() { 
+  const currentStockData = getStockData(); 
+  updateStockTable('#currentStockDataTable', currentStockData); 
+} 
+ 
+function updateStockTable(tableSelector, stockData) { 
+  const stockTableBody = document.querySelector(`${tableSelector} tbody`); 
   stockTableBody.innerHTML = ''; 
  
   stockData.forEach(item => { 
@@ -68,13 +77,12 @@ function updateStockDisplay() {
     row.innerHTML = ` 
       <td>${item.produto.trim()}</td> 
       <td>${item.tanque.trim()}</td> 
-      <td>${item.disponivelEnvio.toFixed(2)}</td> 
-      <td>${item.espacoRecebimento.toFixed(2)}</td> 
+      <td>${parseFloat(item.disponivelEnvio).toFixed(2)}</td> 
+      <td>${parseFloat(item.espacoRecebimento).toFixed(2)}</td> 
     `; 
   }); 
 } 
  
-// Função para salvar dados do estoque 
 function saveStockData(stockData) { 
   const processedStockData = stockData.map(item => ({ 
     ...item, 
@@ -84,11 +92,10 @@ function saveStockData(stockData) {
     tanque: item.tanque.trim() 
   })); 
   localStorage.setItem('stockData', JSON.stringify(processedStockData)); 
-  updateStockDisplay(); 
+  updateCurrentStockDisplay(); 
   populateTankSelect(); 
 } 
  
-// Função para obter dados do estoque 
 function getStockData() { 
   const stockData = JSON.parse(localStorage.getItem('stockData') || '[]'); 
   return stockData.map(item => ({ 
@@ -98,4 +105,12 @@ function getStockData() {
     produto: item.produto.trim(), 
     tanque: item.tanque.trim() 
   })); 
+} 
+ 
+function saveInitialStockData(stockData) { 
+  localStorage.setItem('initialStockData', JSON.stringify(stockData)); 
+} 
+ 
+function getInitialStockData() { 
+  return JSON.parse(localStorage.getItem('initialStockData') || '[]'); 
 } 

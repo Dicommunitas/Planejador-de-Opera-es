@@ -7,17 +7,30 @@
   <link rel="stylesheet" href="css/styles.css"> 
 </head> 
 <body> 
-  <div id="header"></div> 
- 
-  <div id="app"> 
+  <header id="header"> 
     <h1>Planejador de Operações</h1> 
     <nav> 
       <a href="pages/estoque.html">Importação e Visualização de Estoque</a> 
     </nav> 
+  </header> 
  
+  <div id="app"> 
     <div id="stockDataDisplay"> 
-      <h2>Dados do Estoque</h2> 
-      <table id="stockDataTable"> 
+      <h2>Dados do Estoque Inicial</h2> 
+      <table id="initialStockDataTable"> 
+        <thead> 
+          <tr> 
+            <th>Produto</th> 
+            <th>Tanque</th> 
+            <th>Disponível para Envio (m³)</th> 
+            <th>Espaço para Recebimento (m³)</th> 
+          </tr> 
+        </thead> 
+        <tbody></tbody> 
+      </table> 
+ 
+      <h2>Dados do Estoque Final</h2> 
+      <table id="currentStockDataTable"> 
         <thead> 
           <tr> 
             <th>Produto</th> 
@@ -31,13 +44,15 @@
     </div> 
  
     <div id="totals"> 
-      <label for="totalNavio">Total Programado para Navio:</label> 
+      <h2>Programação Total</h2> 
+      <p>Insira os volumes totais programados. Use valores positivos para recebimento e negativos para envio.</p> 
+      <label for="totalNavio">Total Programado para Navio (m³):</label> 
       <input type="number" id="totalNavio" value="0"> 
-      <label for="totalOlapa">Total Programado para Olapa:</label> 
+      <label for="totalOlapa">Total Programado para Olapa (m³):</label> 
       <input type="number" id="totalOlapa" value="0"> 
       <button id="recalculateButton">Recalcular Quantidades</button> 
     </div> 
-     
+      
     <div id="data-entry"> 
       <h2>Adicionar Operação</h2> 
       <select id="tank"></select> 
@@ -54,7 +69,7 @@
       <input type="datetime-local" id="startTime"> 
       <button id="addOperationButton">Adicionar Operação</button> 
     </div> 
-     
+      
     <div id="optimization-results"> 
       <h2>Operações Planejadas</h2> 
       <table id="operationsTable"> 
@@ -69,6 +84,7 @@
             <th>Tipo de Operação</th> 
             <th>Início</th> 
             <th>Término</th> 
+            <th>Volume Operado (m³)</th> 
             <th>Falta para Navio</th> 
             <th>Falta para Olapa</th> 
             <th>Ações</th> 
@@ -79,16 +95,18 @@
     </div> 
   </div> 
  
-  <div id="footer"></div> 
+  <footer id="footer"> 
+    <p>&copy; 2024 Planejador de Operações. Tepar.</p> 
+  </footer> 
  
-<script src="js/estoque/importacao.js"></script> 
-<script src="js/estoque/visualizacao.js"></script> 
-<script src="js/estoque/transferencia.js"></script> 
-<script src="js/planejador/addOperation.js"></script> 
-<script src="js/planejador/clearForm.js"></script> 
-<script src="js/planejador/updateFalta.js"></script> 
-<script src="js/planejador/sortOperations.js"></script> 
-<script src="js/planejador/checkOverlap.js"></script> 
-<script src="js/main.js"></script> 
+  <script src="js/estoque/importacao.js"></script> 
+  <script src="js/estoque/visualizacao.js"></script> 
+  <script src="js/estoque/transferencia.js"></script> 
+  <script src="js/planejador/addOperation.js"></script> 
+  <script src="js/planejador/clearForm.js"></script> 
+  <script src="js/planejador/updateFalta.js"></script> 
+  <script src="js/planejador/sortOperations.js"></script> 
+  <script src="js/planejador/checkOverlap.js"></script> 
+  <script src="js/main.js"></script> 
 </body> 
 </html> 

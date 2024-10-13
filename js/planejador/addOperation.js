@@ -44,6 +44,7 @@ function addOperation() {
  
   // 5. Cria uma nova linha na tabela 
   const newRow = document.createElement('tr'); 
+  const volumeOperado = direction === 'receber' ? volume : -volume; 
   newRow.innerHTML = ` 
     <td>${tankData.produto}</td> 
     <td>${tank}</td> 
@@ -54,6 +55,7 @@ function addOperation() {
     <td>${operationType}</td> 
     <td>${startTime.toLocaleString('pt-BR', { hour12: false })}</td> 
     <td>${endTime.toLocaleString('pt-BR', { hour12: false })}</td> 
+    <td>${volumeOperado.toFixed(2)}</td> 
     <td>0</td> 
     <td>0</td> 
     <td> 
@@ -67,6 +69,7 @@ function addOperation() {
   if (operationsTableBody) { 
     operationsTableBody.appendChild(newRow); 
     console.log('Nova linha adicionada à tabela'); 
+    console.log('Conteúdo da nova linha:', newRow.innerHTML); 
   } else { 
     console.error('Elemento #operationsTable tbody não encontrado'); 
   } 
@@ -74,7 +77,9 @@ function addOperation() {
   // 7. Atualiza os dados de estoque 
   if (direction === 'enviar') { 
     tankData.disponivelEnvio -= volume; 
+    tankData.espacoRecebimento += volume; 
   } else { 
+    tankData.disponivelEnvio += volume; 
     tankData.espacoRecebimento -= volume; 
   } 
   saveStockData(stockData); 
@@ -84,7 +89,9 @@ function addOperation() {
     // Restaura o volume ao estoque quando a operação é deletada 
     if (direction === 'enviar') { 
       tankData.disponivelEnvio += volume; 
+      tankData.espacoRecebimento -= volume; 
     } else { 
+      tankData.disponivelEnvio -= volume; 
       tankData.espacoRecebimento += volume; 
     } 
     saveStockData(stockData); 
@@ -92,7 +99,7 @@ function addOperation() {
     newRow.remove(); 
     updateFalta(); 
     checkOverlap(); 
-    updateStockDisplay(); 
+    updateCurrentStockDisplay(); 
   }); 
  
   newRow.querySelector('.copyOperation').addEventListener('click', () => { 
@@ -106,8 +113,9 @@ function addOperation() {
  
   // 9. Atualiza cálculos e exibições 
   updateFalta(); 
+  sortOperations(); 
   checkOverlap(); 
-  updateStockDisplay(); 
+  updateCurrentStockDisplay(); 
   clearForm(); 
  
   console.log('Função addOperation concluída'); 

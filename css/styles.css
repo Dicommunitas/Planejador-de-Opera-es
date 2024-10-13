@@ -1,53 +1,28 @@
 body { 
   font-family: Arial, sans-serif; 
+  margin: 0; 
+  padding: 0; 
+  display: flex; 
+  flex-direction: column; 
+  min-height: 100vh; 
 } 
+ 
 #app { 
-  width: 80%; 
+  width: 95%; /* Aumentado de 90% para 95% */ 
+  max-width: 1600px; /* Aumentado de 1200px para 1600px */ 
   margin: 0 auto; 
+  flex: 1; 
+  padding: 20px; 
 } 
-input, select { 
-  margin-bottom: 1em; 
-} 
-button { 
-  padding: 0.5em 1em; 
-  font-size: 1em; 
-  cursor: pointer; 
-} 
-button:hover { 
-  background-color: #ddd; 
-} 
-table { 
-  width: 100%; 
-  border-collapse: collapse; 
-} 
-th, td { 
-  border: 1px solid #ddd; 
-  padding: 8px; 
-  text-align: left; 
-} 
-th { 
+ 
+header, footer { 
   background-color: #f0f0f0; 
+  padding: 1em; 
+  text-align: center; 
 } 
-tr:nth-child(even) { 
-  background-color: #f2f2f2; 
-} 
-tr:nth-child(odd) { 
-  background-color: #e9ecef; 
-} 
-tr:hover { 
-  background-color: #ddd; 
-} 
-td, th { 
-  padding: 10px; 
-} 
-tr.navio { 
-  background-color: #d1ecf1; 
-} 
-tr.olapa { 
-  background-color: #d4edda; 
-} 
+ 
 nav { 
-  margin-bottom: 20px; 
+  margin: 20px 0; 
 } 
  
 nav a { 
@@ -59,40 +34,194 @@ nav a:hover {
   text-decoration: underline; 
 } 
  
-#stockVisualization { 
-  margin-top: 20px; 
+h1, h2 { 
+  color: #333; 
 } 
  
-#stockVisualization table { 
+input, select { 
+  margin-bottom: 1em; 
+  padding: 0.5em; 
+  border: 1px solid #ccc; 
+  border-radius: 4px; 
+} 
+ 
+button { 
+  padding: 0.5em 1em; 
+  font-size: 1em; 
+  cursor: pointer; 
+  background-color: #007bff; 
+  color: white; 
+  border: none; 
+  border-radius: 4px; 
+  transition: background-color 0.3s; 
+} 
+ 
+button:hover { 
+  background-color: #0056b3; 
+} 
+ 
+table { 
   width: 100%; 
   border-collapse: collapse; 
+  margin-bottom: 20px; 
 } 
  
-#stockVisualization th, #stockVisualization td { 
+th, td { 
   border: 1px solid #ddd; 
   padding: 8px; 
   text-align: left; 
 } 
  
-#stockVisualization th { 
+th { 
   background-color: #f0f0f0; 
+  font-weight: bold; 
 } 
-
+ 
+tr:nth-child(even) { 
+  background-color: #f2f2f2; 
+} 
+ 
+tr:nth-child(odd) { 
+  background-color: #ffffff; 
+} 
+ 
+tr:hover { 
+  background-color: #e9ecef; 
+} 
+ 
+tr.navio { 
+  background-color: #d1ecf1; 
+} 
+ 
+tr.olapa { 
+  background-color: #d4edda; 
+} 
+ 
 tr.encavalado { 
   background-color: #ffcccc !important; 
 } 
-
+ 
+#stockDataDisplay { 
+  margin-bottom: 30px; 
+} 
+ 
+#totals { 
+  background-color: #f8f9fa; 
+  padding: 20px; 
+  border-radius: 4px; 
+  margin-bottom: 30px; 
+} 
+ 
+#totals h2 { 
+  margin-top: 0; 
+} 
+ 
+#data-entry { 
+  background-color: #e9ecef; 
+  padding: 20px; 
+  border-radius: 4px; 
+  margin-bottom: 30px; 
+} 
+ 
+#optimization-results { 
+  overflow-x: auto; 
+} 
+ 
+/* Responsividade */ 
+@media (max-width: 1200px) { 
+  #app { 
+    width: 98%; /* Ainda mais largo em telas menores */ 
+  } 
+   
+  table { 
+    font-size: 0.9em; 
+  } 
+} 
+ 
+@media (max-width: 768px) { 
+  #app { 
+    width: 100%; 
+    padding: 10px; 
+  } 
+   
+  table { 
+    font-size: 0.8em; 
+  } 
+} 
+#importInstructions { 
+  background-color: #f8f9fa; 
+  padding: 20px; 
+  border-radius: 4px; 
+  margin-bottom: 30px; 
+} 
+ 
 #dropZone { 
   border: 2px dashed #ccc; 
-  border-radius: 20px; 
-  width: 480px; 
-  font-family: sans-serif; 
-  margin: 100px auto; 
+  border-radius: 4px; 
   padding: 20px; 
+  text-align: center; 
+  margin-bottom: 30px; 
+  background-color: #f8f9fa; 
+  cursor: pointer; 
+} 
+ 
+#dropZone:hover { 
+  background-color: #e9ecef; 
+} 
+ 
+#transferButton { 
+  display: block; 
+  margin: 20px auto; 
+  padding: 10px 20px; 
+  font-size: 1.1em; 
+} 
+ 
+#stockVisualization { 
+  margin-top: 30px; 
+} 
+/* ... (seu CSS existente) ... */ 
+ 
+/* Estilos para os botões de ação na tabela de Operações Planejadas */ 
+#operationsTable td:last-child { 
+  white-space: nowrap; 
   text-align: center; 
 } 
  
-#dropZone.dragover { 
-  background-color: #e1e7f0; 
-  color: #1f3c58; 
+#operationsTable .copyOperation, 
+#operationsTable .deleteOperation { 
+  margin: 2px; 
+  padding: 5px 10px; 
+  font-size: 0.9em; 
+  border: none; 
+  border-radius: 3px; 
+  cursor: pointer; 
+  transition: background-color 0.3s; 
 } 
+ 
+#operationsTable .copyOperation { 
+  background-color: #4CAF50; 
+  color: white; 
+} 
+ 
+#operationsTable .deleteOperation { 
+  background-color: #f44336; 
+  color: white; 
+} 
+ 
+#operationsTable .copyOperation:hover { 
+  background-color: #45a049; 
+} 
+ 
+#operationsTable .deleteOperation:hover { 
+  background-color: #da190b; 
+} 
+ 
+/* Ajuste para telas menores */ 
+@media (max-width: 768px) { 
+  #operationsTable .copyOperation, 
+  #operationsTable .deleteOperation { 
+    padding: 3px 6px; 
+    font-size: 0.8em; 
+  } 
+} 
+ 

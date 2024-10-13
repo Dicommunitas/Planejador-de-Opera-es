@@ -8,15 +8,14 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> 
 </head> 
 <body> 
-  <div id="header"></div> 
- 
-  <div id="app"> 
+  <header id="header"> 
     <h1>Importação e Visualização de Estoque</h1> 
- 
     <nav> 
       <a href="../index.html">Voltar para o Planejador de Operações</a> 
     </nav> 
+  </header> 
  
+  <div id="app"> 
     <div id="importInstructions"> 
       <h2>Como obter o arquivo do sistema BDEMQ:</h2> 
       <ol> 
@@ -52,7 +51,9 @@
     <button id="transferButton">Transferir Dados Selecionados para o Planejador</button> 
   </div> 
  
-  <div id="footer"></div> 
+  <footer id="footer"> 
+    <p>&copy; 2024 Planejador de Operações. Tepar.</p> 
+  </footer> 
  
   <script src="../js/estoque/importacao.js"></script> 
   <script src="../js/estoque/visualizacao.js"></script> 
