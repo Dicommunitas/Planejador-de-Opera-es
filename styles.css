@@ -46,6 +46,38 @@ tr.navio {
 tr.olapa { 
   background-color: #d4edda; 
 } 
+nav { 
+  margin-bottom: 20px; 
+} 
+ 
+nav a { 
+  text-decoration: none; 
+  color: #007bff; 
+} 
+ 
+nav a:hover { 
+  text-decoration: underline; 
+} 
+ 
+#stockVisualization { 
+  margin-top: 20px; 
+} 
+ 
+#stockVisualization table { 
+  width: 100%; 
+  border-collapse: collapse; 
+} 
+ 
+#stockVisualization th, #stockVisualization td { 
+  border: 1px solid #ddd; 
+  padding: 8px; 
+  text-align: left; 
+} 
+ 
+#stockVisualization th { 
+  background-color: #f0f0f0; 
+} 
+
 tr.encavalado { 
   background-color: #ffcccc !important; 
 } 
