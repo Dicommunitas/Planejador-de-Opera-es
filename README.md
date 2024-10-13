@@ -26,7 +26,7 @@ Este é um aplicativo web interativo que permite aos usuários planejar e visual
  
 - HTML5 
 - CSS3 
-- JavaScript (ES6+) 
+- JavaScript 
 - [SheetJS](https://sheetjs.com/) para manipulação de arquivos Excel 
  
 
