@@ -4,22 +4,24 @@
   <meta charset="UTF-8"> 
   <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
   <title>Importação e Visualização de Estoque</title> 
-  <link rel="stylesheet" href="styles.css"> 
+  <link rel="stylesheet" href="../css/styles.css"> 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> 
 </head> 
 <body> 
+  <div id="header"></div> 
+ 
   <div id="app"> 
     <h1>Importação e Visualização de Estoque</h1> 
-     
+ 
     <nav> 
-      <a href="index.html">Voltar para o Planejador de Operações</a> 
+      <a href="../index.html">Voltar para o Planejador de Operações</a> 
     </nav> 
  
     <div id="importInstructions"> 
       <h2>Como obter o arquivo do sistema BDEMQ:</h2> 
       <ol> 
         <li>Acesse o sistema BDEMQ através do link interno da Petrobras.</li> 
-        <li>Navegue até a seção de relatórios ou extração de dados.</li> 
+        <li>Navegue até a seção "2.6.3.10 - Boletim Diário de Estoque".</li> 
         <li>Selecione o relatório de estoque de tanques.</li> 
         <li>Escolha o formato de arquivo Excel (.xls ou .xlsx).</li> 
         <li>Clique no botão de download para salvar o arquivo em seu computador.</li> 
@@ -30,13 +32,13 @@
       Arraste e solte o arquivo Excel aqui ou clique para selecionar 
       <input type="file" id="fileInput" accept=".xls,.xlsx" style="display: none;"> 
     </div> 
-    <button id="importButton">Importar Dados</button> 
  
     <div id="stockVisualization"> 
       <h2>Visualização de Estoque</h2> 
       <table id="stockTable"> 
         <thead> 
           <tr> 
+            <th>Selecionar</th> 
             <th>Produto</th> 
             <th>Tanque</th> 
             <th>Disponível para Envio (m³)</th> 
@@ -46,8 +48,20 @@
         <tbody></tbody> 
       </table> 
     </div> 
+ 
+    <button id="transferButton">Transferir Dados Selecionados para o Planejador</button> 
   </div> 
  
-  <script src="estoque.js"></script> 
+  <div id="footer"></div> 
+ 
+  <script src="../js/estoque/importacao.js"></script> 
+  <script src="../js/estoque/visualizacao.js"></script> 
+  <script src="../js/estoque/transferencia.js"></script> 
+  <script> 
+    document.addEventListener('DOMContentLoaded', () => { 
+      setupImportacao(); 
+      setupTransferencia(); 
+    }); 
+  </script> 
 </body> 
 </html> 
