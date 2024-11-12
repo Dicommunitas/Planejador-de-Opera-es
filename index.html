@@ -5,12 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
   <title>Planejador de Operações</title> 
   <link rel="stylesheet" href="css/styles.css"> 
+  <link rel="icon" href="images/favicon.ico" type="image/x-icon"> 
 </head> 
 <body> 
   <header id="header"> 
+    <img src="images/logo.jpg" alt="Logo do Planejador de Operações" id="logo"> 
     <h1>Planejador de Operações</h1> 
     <nav> 
       <a href="pages/estoque.html">Importação e Visualização de Estoque</a> 
+      <a href="https://github.com/Dicommunitas/Planejador-de-Opera-es" target="_blank">Projeto no GitHub</a> 
     </nav> 
   </header> 
  
@@ -52,7 +55,7 @@
       <input type="number" id="totalOlapa" value="0"> 
       <button id="recalculateButton">Recalcular Quantidades</button> 
     </div> 
-      
+       
     <div id="data-entry"> 
       <h2>Adicionar Operação</h2> 
       <select id="tank"></select> 
@@ -69,7 +72,7 @@
       <input type="datetime-local" id="startTime"> 
       <button id="addOperationButton">Adicionar Operação</button> 
     </div> 
-      
+       
     <div id="optimization-results"> 
       <h2>Operações Planejadas</h2> 
       <table id="operationsTable"> 
@@ -97,6 +100,7 @@
  
   <footer id="footer"> 
     <p>&copy; 2024 Planejador de Operações. Tepar.</p> 
+    <a href="https://github.com/Dicommunitas/Planejador-de-Opera-es" target="_blank">Visite o projeto no GitHub</a> 
   </footer> 
  
   <script src="js/estoque/importacao.js"></script> 
