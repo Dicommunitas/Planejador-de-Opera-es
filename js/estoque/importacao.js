@@ -1,12 +1,16 @@
 // importacao.js 
  
+import { saveInitialStock } from '../services/storage.js'; 
+import { validateTankData } from '../utils/validation.js'; 
+import { updateVisualizacao } from './visualizacao.js'; 
+ 
 // Variável global para armazenar os dados do estoque 
 let globalStockData = []; 
  
 /** 
  * Configura os eventos de importação para o drag and drop e seleção de arquivo 
  */ 
-function setupImportacao() { 
+export function setupImportacao() { 
   const fileInput = document.getElementById('fileInput'); 
   const dropZone = document.getElementById('dropZone'); 
  
@@ -78,10 +82,17 @@ function processExcelData(worksheet) {
  
     // Adiciona apenas linhas com dados válidos 
     if (tanque && tanque !== 'TOTAL' && !isNaN(disponivelEnvio) && !isNaN(espacoRecebimento)) { 
-      globalStockData.push({produto, tanque, disponivelEnvio, espacoRecebimento}); 
+      const tankData = { produto, tanque, disponivelEnvio, espacoRecebimento }; 
+      const validation = validateTankData(tankData); 
+      if (validation.isValid) { 
+        globalStockData.push(tankData); 
+      } else { 
+        console.warn(`Dados inválidos para o tanque ${tanque}:`, validation.errors); 
+      } 
     } 
   } 
   updateVisualizacao(globalStockData); 
+  saveInitialStock(globalStockData); 
   console.log('Dados importados:', globalStockData); 
 } 
  
@@ -96,4 +107,4 @@ function getCellValue(worksheet, cellAddress) {
   return cell ? cell.v : ''; 
 } 
  
-// Não é mais necessário exportar, as funções e variáveis serão globais 
+export { globalStockData }; 
