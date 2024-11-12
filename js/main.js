@@ -1,29 +1,16 @@
 // main.js 
  
-import Header from './components/Header.js'; 
-import Footer from './components/Footer.js'; 
-import OperationForm from './components/OperationForm.js'; 
-import StockTable from './components/StockTable.js'; 
-import OperationsTable from './components/OperationsTable.js'; 
 import { loadOperations, sortOperations, calculateFalta, checkOverlap } from './state/operations.js'; 
 import { getInitialStockData, getCurrentStockData, updateStockDisplay } from './state/stockData.js'; 
 import { setupFaltaListeners } from './planejador/updateFalta.js'; 
  
 document.addEventListener('DOMContentLoaded', () => { 
-    //initializeComponents(); 
+    initializeComponents(); 
     setupEventListeners(); 
     loadInitialData(); 
 }); 
  
 function initializeComponents() { 
-    customElements.define('app-header', Header); 
-    customElements.define('app-footer', Footer); 
-    customElements.define('operation-form', OperationForm); 
-    customElements.define('stock-table', StockTable); 
-    customElements.define('operations-table', OperationsTable); 
- 
-    document.body.insertAdjacentHTML('afterbegin', '<app-header></app-header>'); 
-    document.body.insertAdjacentHTML('beforeend', '<app-footer></app-footer>'); 
      
     const app = document.getElementById('app'); 
     app.innerHTML = ` 

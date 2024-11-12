@@ -1,6 +1,7 @@
 // sortOperations.js  
   
 import { saveOperations } from '../state/operations.js';
+import { getOperations } from '../state/operations.js';
 import { parseDateBR } from '../utils/dateUtils.js';  
   
 /**  
@@ -9,6 +10,7 @@ import { parseDateBR } from '../utils/dateUtils.js';
 export function sortOperations() {  
   console.log('Iniciando ordenação das operações');  
   const operations = getOperations();  
+
   
   operations.sort((a, b) => {  
     const aStartTime = new Date(a.startTime);  

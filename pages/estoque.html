@@ -25,7 +25,7 @@
             </ol> 
         </div> 
  
-        <drop-zone></drop-zone> 
+        <dropZone></dropZone> 
  
         <div id="stockVisualization"> 
             <h2>Visualização de Estoque</h2> 
@@ -48,27 +48,31 @@
  
     <app-footer></app-footer> 
  
-    <script type="module"> 
-        import { setupImportacao } from '../js/estoque/importacao.js'; 
-        import { setupTransferencia, updateSelectionState } from '../js/estoque/transferencia.js'; 
-        import { initVisualizacao } from '../js/estoque/visualizacao.js'; 
- 
-        document.addEventListener('DOMContentLoaded', () => { 
-            setupImportacao(); 
-            setupTransferencia(); 
-            initVisualizacao(); 
-            updateSelectionState(); 
- 
-            const dropZone = document.querySelector('drop-zone'); 
-            dropZone.addEventListener('fileProcessed', (event) => { 
-                if (event.detail.success) { 
-                    initVisualizacao(); 
-                    updateSelectionState(); 
-                } else { 
-                    alert('Erro ao processar o arquivo: ' + event.detail.error); 
-                } 
-            }); 
-        }); 
-    </script> 
+    <script type="module">
+        import { setupImportacao } from '../js/estoque/importacao.js';
+        import { setupTransferencia, updateSelectionState } from '../js/estoque/transferencia.js';
+        import { initVisualizacao } from '../js/estoque/visualizacao.js';
+      
+        document.addEventListener('DOMContentLoaded', () => {
+          setupImportacao();
+          setupTransferencia();
+          initVisualizacao();
+          updateSelectionState();
+      
+          const dropZone = document.querySelector('drop-zone');
+          if (dropZone) {
+            dropZone.addEventListener('fileProcessed', (event) => {
+              if (event.detail.success) {
+                initVisualizacao();
+                updateSelectionState();
+              } else {
+                alert('Erro ao processar o arquivo: ' + event.detail.error);
+              }
+            });
+          } else {
+            console.error('Elemento <drop-zone> não encontrado no DOM.');
+          }
+        });
+      </script>
 </body> 
 </html> 

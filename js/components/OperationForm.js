@@ -69,12 +69,14 @@ class OperationForm extends HTMLElement {
     `; 
   } 
  
-  setupEventListeners() { 
-    const addOperationButton = this.shadowRoot.getElementById('addOperationButton'); 
-    addOperationButton.addEventListener('click', this.handleAddOperation.bind(this)); 
- 
-    this.populateTankSelect(); 
-  } 
+  setupEventListeners() {
+    const addOperationButton = this.shadowRoot.getElementById('addOperationButton');
+    addOperationButton.addEventListener('click', this.handleAddOperation.bind(this));
+  
+    this.addEventListener('stockUpdated', () => {
+      this.populateTankSelect();
+    });
+  }
  
   handleAddOperation() { 
     const formData = this.getFormData(); 
@@ -107,18 +109,18 @@ class OperationForm extends HTMLElement {
     return true; 
   } 
  
-  populateTankSelect() { 
-    const tankSelect = this.shadowRoot.getElementById('tank'); 
-    const stockData = getStockData(); 
-     
-    tankSelect.innerHTML = '<option value="">Selecione um tanque</option>'; 
-    stockData.forEach(item => { 
-      const option = document.createElement('option'); 
-      option.value = item.tanque.trim(); 
-      option.textContent = `${item.tanque.trim()} - ${item.produto.trim()}`; 
-      tankSelect.appendChild(option); 
-    }); 
-  } 
+  populateTankSelect() {
+    const tankSelect = this.shadowRoot.getElementById('tank');
+    const stockData = getStockData();
+  
+    tankSelect.innerHTML = '<option value="">Selecione um tanque</option>';
+    stockData.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item.tanque.trim();
+      option.textContent = `${item.tanque.trim()} - ${item.produto.trim()}`;
+      tankSelect.appendChild(option);
+    });
+  }
  
   updateCurrentStockDisplay() { 
     // Dispatch a custom event to notify that the stock data has changed 
