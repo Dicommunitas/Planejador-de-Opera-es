@@ -1,54 +1,31 @@
-/* Estilos gerais */ 
-:root { 
-  --primary-color: #007bff; 
-  --secondary-color: #0056b3; 
-  --background-color: #f0f0f0; 
-  --text-color: #333; 
-  --border-color: #ddd; 
-  --hover-color: #e9ecef; 
-  --navio-color: #d1ecf1; 
-  --olapa-color: #d4edda; 
-  --encavalado-color: #ffcccc; 
-} 
+body {  
+  font-family: Arial, sans-serif;  
+  margin: 0;  
+  padding: 0;  
+  display: flex;  
+  flex-direction: column;  
+  min-height: 100vh;  
+}  
  
-body { 
-  font-family: Arial, sans-serif; 
-  margin: 0; 
-  padding: 0; 
-  display: flex; 
-  flex-direction: column; 
-  min-height: 100vh; 
-  color: var(--text-color); 
-} 
- 
-#app { 
+#app {  
   width: 95%; 
   max-width: 1600px; 
-  margin: 0 auto; 
-  flex: 1; 
-  padding: 20px; 
-} 
+  margin: 0 auto;  
+  flex: 1;  
+  padding: 20px;  
+}  
  
-/* Cabeçalho e rodapé */ 
-header, footer { 
-  background-color: var(--background-color); 
-  padding: 1em; 
+header, footer {  
+  background-color: #f0f0f0;  
+  padding: 1em;  
+  text-align: center;  
   width: 100%; 
-  box-sizing: border-box; 
 } 
  
 header { 
   display: flex; 
-  justify-content: center; 
-  align-items: center; 
-} 
- 
-.header-content { 
-  display: flex; 
   justify-content: space-between; 
   align-items: center; 
-  max-width: 1600px; 
-  width: 100%; 
 } 
  
 #logo { 
@@ -56,214 +33,221 @@ header {
   margin-right: 20px; 
 } 
  
-.title-nav { 
-  display: flex; 
-  align-items: center; 
-  flex-grow: 1; 
-} 
+nav {  
+  margin: 20px 0;  
+}  
  
-h1 { 
-  margin: 0; 
-  font-size: 1.5em; 
-  white-space: nowrap; 
-} 
+nav a, footer a {  
+  text-decoration: none;  
+  color: #007bff;  
+  margin-left: 15px; 
+}  
  
-nav { 
-  margin-left: auto; 
-} 
+nav a:hover, footer a:hover {  
+  text-decoration: underline;  
+}  
  
-nav a, .button { 
-  text-decoration: none; 
-  color: #fff; 
-  background-color: var(--primary-color); 
-  padding: 0.5em 1em; 
-  border-radius: 4px; 
-  transition: background-color 0.3s; 
-} 
+h1, h2 {  
+  color: #333;  
+}  
  
-nav a:hover, .button:hover { 
-  background-color: var(--secondary-color); 
-} 
+input, select {  
+  margin-bottom: 1em;  
+  padding: 0.5em;  
+  border: 1px solid #ccc;  
+  border-radius: 4px;  
+}  
  
-footer { 
-  text-align: center; 
-} 
+button {  
+  padding: 0.5em 1em;  
+  font-size: 1em;  
+  cursor: pointer;  
+  background-color: #007bff;  
+  color: white;  
+  border: none;  
+  border-radius: 4px;  
+  transition: background-color 0.3s;  
+}  
  
-footer a { 
-  color: var(--primary-color); 
-  text-decoration: none; 
-} 
+button:hover {  
+  background-color: #0056b3;  
+}  
  
-footer a:hover { 
-  text-decoration: underline; 
-} 
+table {  
+  width: 100%;  
+  border-collapse: collapse;  
+  margin-bottom: 20px;  
+}  
  
-/* Formulários e inputs */ 
-input, select, button { 
-  margin-bottom: 1em; 
-  padding: 0.5em; 
-  border: 1px solid var(--border-color); 
-  border-radius: 4px; 
-} 
+th, td {  
+  border: 1px solid #ddd;  
+  padding: 8px;  
+  text-align: left;  
+}  
  
-button { 
-  cursor: pointer; 
-  background-color: var(--primary-color); 
-  color: white; 
-  border: none; 
-  transition: background-color 0.3s; 
-} 
+th {  
+  background-color: #f0f0f0;  
+  font-weight: bold;  
+}  
  
-button:hover { 
-  background-color: var(--secondary-color); 
-} 
+tr:nth-child(even) {  
+  background-color: #f2f2f2;  
+}  
  
-/* Tabelas */ 
-table { 
-  width: 100%; 
-  border-collapse: collapse; 
-  margin-bottom: 20px; 
-} 
+tr:nth-child(odd) {  
+  background-color: #ffffff;  
+}  
  
-th, td { 
-  border: 1px solid var(--border-color); 
-  padding: 8px; 
-  text-align: left; 
-} 
+tr:hover {  
+  background-color: #e9ecef;  
+}  
  
-th { 
-  background-color: var(--background-color); 
-  font-weight: bold; 
-} 
+tr.navio {  
+  background-color: #d1ecf1;  
+}  
  
-tr:nth-child(even) { 
-  background-color: #f2f2f2; 
-} 
+tr.olapa {  
+  background-color: #d4edda;  
+}  
  
-tr:hover { 
-  background-color: var(--hover-color); 
-} 
+tr.encavalado {  
+  background-color: #ffcccc !important;  
+}  
  
-tr.navio { 
-  background-color: var(--navio-color); 
-} 
+#stockDataDisplay {  
+  margin-bottom: 30px;  
+}  
  
-tr.olapa { 
-  background-color: var(--olapa-color); 
-} 
+#totals {  
+  background-color: #f8f9fa;  
+  padding: 20px;  
+  border-radius: 4px;  
+  margin-bottom: 30px;  
+}  
  
-tr.encavalado { 
-  background-color: var(--encavalado-color) !important; 
-} 
+#totals h2 {  
+  margin-top: 0;  
+}  
  
-/* Componentes específicos */ 
-#stockDataDisplay, #totals, #data-entry, #optimization-results { 
-  margin-bottom: 30px; 
-} 
+#data-entry {  
+  background-color: #e9ecef;  
+  padding: 20px;  
+  border-radius: 4px;  
+  margin-bottom: 30px;  
+}  
  
-#totals, #data-entry, #importInstructions { 
-  background-color: #f8f9fa; 
-  padding: 20px; 
-  border-radius: 4px; 
-} 
+#optimization-results {  
+  overflow-x: auto;  
+}  
  
-#dropZone { 
-  border: 2px dashed var(--border-color); 
-  border-radius: 4px; 
-  padding: 20px; 
-  text-align: center; 
-  margin-bottom: 30px; 
-  background-color: #f8f9fa; 
-  cursor: pointer; 
-} 
+#importInstructions {  
+  background-color: #f8f9fa;  
+  padding: 20px;  
+  border-radius: 4px;  
+  margin-bottom: 30px;  
+}  
  
-#dropZone:hover { 
-  background-color: var(--hover-color); 
-} 
+#dropZone {  
+  border: 2px dashed #ccc;  
+  border-radius: 4px;  
+  padding: 20px;  
+  text-align: center;  
+  margin-bottom: 30px;  
+  background-color: #f8f9fa;  
+  cursor: pointer;  
+}  
  
-#transferButton { 
-  display: block; 
-  margin: 20px auto; 
-  padding: 10px 20px; 
-  font-size: 1.1em; 
-} 
+#dropZone:hover {  
+  background-color: #e9ecef;  
+}  
  
-#stockVisualization { 
-  margin-top: 30px; 
-} 
+#transferButton {  
+  display: block;  
+  margin: 20px auto;  
+  padding: 10px 20px;  
+  font-size: 1.1em;  
+}  
  
-/* Botões de ação na tabela de operações */ 
-#operationsTable td:last-child { 
-  white-space: nowrap; 
-  text-align: center; 
-} 
+#stockVisualization {  
+  margin-top: 30px;  
+}  
  
-#operationsTable .copyOperation, 
-#operationsTable .deleteOperation { 
-  margin: 2px; 
-  padding: 5px 10px; 
-  font-size: 0.9em; 
-  border: none; 
-  border-radius: 3px; 
-} 
+/* Estilos para os botões de ação na tabela de Operações Planejadas */  
+#operationsTable td:last-child {  
+  white-space: nowrap;  
+  text-align: center;  
+}  
  
-#operationsTable .copyOperation { 
-  background-color: #4CAF50; 
-} 
+#operationsTable .copyOperation,  
+#operationsTable .deleteOperation {  
+  margin: 2px;  
+  padding: 5px 10px;  
+  font-size: 0.9em;  
+  border: none;  
+  border-radius: 3px;  
+  cursor: pointer;  
+  transition: background-color 0.3s;  
+}  
  
-#operationsTable .deleteOperation { 
-  background-color: #f44336; 
-} 
+#operationsTable .copyOperation {  
+  background-color: #4CAF50;  
+  color: white;  
+}  
  
-#operationsTable .copyOperation:hover { 
-  background-color: #45a049; 
-} 
+#operationsTable .deleteOperation {  
+  background-color: #f44336;  
+  color: white;  
+}  
  
-#operationsTable .deleteOperation:hover { 
-  background-color: #da190b; 
-} 
+#operationsTable .copyOperation:hover {  
+  background-color: #45a049;  
+}  
  
-/* Responsividade */ 
-@media (max-width: 1200px) { 
-  #app { 
+#operationsTable .deleteOperation:hover {  
+  background-color: #da190b;  
+}  
+ 
+/* Responsividade */  
+@media (max-width: 1200px) {  
+  #app {  
     width: 98%; 
-  } 
-   
-  table { 
-    font-size: 0.9em; 
-  } 
-} 
+  }  
+    
+  table {  
+    font-size: 0.9em;  
+  }  
+}  
  
-@media (max-width: 768px) { 
-  .header-content, .title-nav { 
+@media (max-width: 768px) {  
+  #app {  
+    width: 100%;  
+    padding: 10px;  
+  }  
+    
+  table {  
+    font-size: 0.8em;  
+  }  
+ 
+  #operationsTable .copyOperation,  
+  #operationsTable .deleteOperation {  
+    padding: 3px 6px;  
+    font-size: 0.8em;  
+  }  
+ 
+  header { 
     flex-direction: column; 
-    align-items: center; 
+  } 
+ 
+  #logo { 
+    margin-bottom: 10px; 
   } 
  
   nav { 
-    margin-left: 0; 
     margin-top: 10px; 
-    width: 100%; 
-    text-align: center; 
   } 
  
   nav a { 
-    display: inline-block; 
+    display: block; 
     margin: 5px 0; 
-  } 
- 
-  #app { 
-    width: 100%; 
-    padding: 10px; 
-  } 
- 
-  table { 
-    font-size: 0.8em; 
-  } 
- 
-  #operationsTable .copyOperation, 
-  #operationsTable .deleteOperation { 
-    padding: 3px 6px; 
-    font-size: 0.8em; 
   } 
 } 
