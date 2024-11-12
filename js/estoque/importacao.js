@@ -51,7 +51,7 @@ export function setupImportacao() {
  * Processa o arquivo Excel selecionado 
  * @param {File} file - O arquivo Excel a ser processado 
  */ 
-function handleFile(file) { 
+export function handleFile(file) { 
   const reader = new FileReader(); 
   reader.onload = function(e) { 
     try { 
@@ -72,7 +72,7 @@ function handleFile(file) {
  * Processa os dados do Excel e armazena no globalStockData 
  * @param {Object} worksheet - A planilha do Excel a ser processada 
  */ 
-function processExcelData(worksheet) { 
+export function processExcelData(worksheet) { 
   globalStockData = []; // Limpa os dados anteriores 
   for (let i = 11; i <= 80; i++) { 
     const produto = getCellValue(worksheet, `D${i}`); 
@@ -102,7 +102,7 @@ function processExcelData(worksheet) {
  * @param {string} cellAddress - O endereço da célula (ex: 'A1') 
  * @returns {string} O valor da célula ou uma string vazia se não existir 
  */ 
-function getCellValue(worksheet, cellAddress) { 
+export function getCellValue(worksheet, cellAddress) { 
   const cell = worksheet[cellAddress]; 
   return cell ? cell.v : ''; 
 } 

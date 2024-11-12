@@ -29,27 +29,6 @@ body {
   padding: 20px; 
 } 
  
-/* Cabeçalho e rodapé */ 
-header, footer { 
-  background-color: var(--background-color); 
-  padding: 1em; 
-  width: 100%; 
-  box-sizing: border-box; 
-} 
- 
-header { 
-  display: flex; 
-  justify-content: center; 
-  align-items: center; 
-} 
- 
-.header-content { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  max-width: 1600px; 
-  width: 100%; 
-} 
  
 #logo { 
   max-height: 50px; 
@@ -83,19 +62,6 @@ nav a, .button {
  
 nav a:hover, .button:hover { 
   background-color: var(--secondary-color); 
-} 
- 
-footer { 
-  text-align: center; 
-} 
- 
-footer a { 
-  color: var(--primary-color); 
-  text-decoration: none; 
-} 
- 
-footer a:hover { 
-  text-decoration: underline; 
 } 
  
 /* Formulários e inputs */ 
@@ -166,21 +132,7 @@ tr.encavalado {
   padding: 20px; 
   border-radius: 4px; 
 } 
- 
-#dropZone { 
-  border: 2px dashed var(--border-color); 
-  border-radius: 4px; 
-  padding: 20px; 
-  text-align: center; 
-  margin-bottom: 30px; 
-  background-color: #f8f9fa; 
-  cursor: pointer; 
-} 
- 
-#dropZone:hover { 
-  background-color: var(--hover-color); 
-} 
- 
+  
 #transferButton { 
   display: block; 
   margin: 20px auto; 
@@ -235,7 +187,7 @@ tr.encavalado {
 } 
  
 @media (max-width: 768px) { 
-  .header-content, .title-nav { 
+  .title-nav { 
     flex-direction: column; 
     align-items: center; 
   } 

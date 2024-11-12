@@ -1044,7 +1044,7 @@ class DropZone extends HTMLElement {
   } 
 } 
 
-customElements.define('drop-zone', DropZone);
+customElements.define('dropZone', DropZone);
 
 export default DropZone;File: ./js/components/Footer.js
 // footer.js 
@@ -2212,8 +2212,8 @@ export function isPositiveNumber(value) {
     <link rel="stylesheet" href="../css/styles.css"> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> 
     <script type="module" src="../js/components/Header.js"></script> 
-    <script type="module" src="../js/components/Footer.js"></script> 
     <script type="module" src="../js/components/DropZone.js"></script> 
+    <script type="module" src="../js/components/Footer.js"></script> 
 </head> 
 <body> 
     <app-header></app-header> 
@@ -2230,7 +2230,7 @@ export function isPositiveNumber(value) {
             </ol> 
         </div> 
  
-        <drop-zone></drop-zone> 
+        <dropZone></dropZone> 
  
         <div id="stockVisualization"> 
             <h2>Visualização de Estoque</h2> 
@@ -2253,28 +2253,34 @@ export function isPositiveNumber(value) {
  
     <app-footer></app-footer> 
  
-    <script type="module"> 
-        import { setupImportacao } from '../js/estoque/importacao.js'; 
-        import { setupTransferencia, updateSelectionState } from '../js/estoque/transferencia.js'; 
-        import { initVisualizacao } from '../js/estoque/visualizacao.js'; 
- 
-        document.addEventListener('DOMContentLoaded', () => { 
-            setupImportacao(); 
-            setupTransferencia(); 
-            initVisualizacao(); 
-            updateSelectionState(); 
- 
-            const dropZone = document.querySelector('drop-zone'); 
-            dropZone.addEventListener('fileProcessed', (event) => { 
-                if (event.detail.success) { 
-                    initVisualizacao(); 
-                    updateSelectionState(); 
-                } else { 
-                    alert('Erro ao processar o arquivo: ' + event.detail.error); 
-                } 
-            }); 
-        }); 
-    </script> 
+    <script type="module">
+        import { setupImportacao } from '../js/estoque/importacao.js';
+        import { setupTransferencia, updateSelectionState } from '../js/estoque/transferencia.js';
+        import { initVisualizacao } from '../js/estoque/visualizacao.js';
+      
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+          setupImportacao();
+          setupTransferencia();
+          initVisualizacao();
+          updateSelectionState();
+      
+          const dropZone = document.querySelector('dropZone');
+          if (dropZone) {
+            dropZone.addEventListener('fileProcessed', (event) => {
+              if (event.detail.success) {
+                initVisualizacao();
+                updateSelectionState();
+              } else {
+                alert('Erro ao processar o arquivo: ' + event.detail.error);
+              }
+            });
+          } else {
+            console.error('Elemento <drop-zone> não encontrado no DOM.');
+          }
+        });
+      </script>
 </body> 
 </html> 
 File: ./index.html
