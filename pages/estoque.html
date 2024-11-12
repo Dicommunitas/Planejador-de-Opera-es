@@ -1,68 +1,74 @@
 <!DOCTYPE html> 
 <html lang="pt-BR"> 
 <head> 
-  <meta charset="UTF-8"> 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-  <title>Importação e Visualização de Estoque</title> 
-  <link rel="stylesheet" href="../css/styles.css"> 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Importação e Visualização de Estoque</title> 
+    <link rel="stylesheet" href="../css/styles.css"> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> 
+    <script type="module" src="../js/components/Header.js"></script> 
+    <script type="module" src="../js/components/Footer.js"></script> 
+    <script type="module" src="../js/components/DropZone.js"></script> 
 </head> 
 <body> 
-  <header id="header"> 
-    <h1>Importação e Visualização de Estoque</h1> 
-    <nav> 
-      <a href="../index.html">Voltar para o Planejador de Operações</a> 
-    </nav> 
-  </header> 
+    <app-header></app-header> 
  
-  <div id="app"> 
-    <div id="importInstructions"> 
-      <h2>Como obter o arquivo do sistema BDEMQ:</h2> 
-      <ol> 
-        <li>Acesse o sistema BDEMQ através do link interno da Petrobras.</li> 
-        <li>Navegue até a seção "2.6.3.10 - Boletim Diário de Estoque".</li> 
-        <li>Selecione o relatório de estoque de tanques.</li> 
-        <li>Escolha o formato de arquivo Excel (.xls ou .xlsx).</li> 
-        <li>Clique no botão de download para salvar o arquivo em seu computador.</li> 
-      </ol> 
+    <div id="app"> 
+        <div id="importInstructions"> 
+            <h2>Como obter o arquivo do sistema BDEMQ:</h2> 
+            <ol> 
+                <li>Acesse o sistema BDEMQ através do link interno da Petrobras.</li> 
+                <li>Navegue até a seção "2.6.3.10 - Boletim Diário de Estoque".</li> 
+                <li>Selecione o relatório de estoque de tanques.</li> 
+                <li>Escolha o formato de arquivo Excel (.xls ou .xlsx).</li> 
+                <li>Clique no botão de download para salvar o arquivo em seu computador.</li> 
+            </ol> 
+        </div> 
+ 
+        <drop-zone></drop-zone> 
+ 
+        <div id="stockVisualization"> 
+            <h2>Visualização de Estoque</h2> 
+            <table id="stockTable"> 
+                <thead> 
+                    <tr> 
+                        <th>Selecionar</th> 
+                        <th>Produto</th> 
+                        <th>Tanque</th> 
+                        <th>Disponível para Envio (m³)</th> 
+                        <th>Espaço para Recebimento (m³)</th> 
+                    </tr> 
+                </thead> 
+                <tbody></tbody> 
+            </table> 
+        </div> 
+ 
+        <button id="transferButton">Transferir Dados Selecionados para o Planejador</button> 
     </div> 
  
-    <div id="dropZone"> 
-      Arraste e solte o arquivo Excel aqui ou clique para selecionar 
-      <input type="file" id="fileInput" accept=".xls,.xlsx" style="display: none;"> 
-    </div> 
+    <app-footer></app-footer> 
  
-    <div id="stockVisualization"> 
-      <h2>Visualização de Estoque</h2> 
-      <table id="stockTable"> 
-        <thead> 
-          <tr> 
-            <th>Selecionar</th> 
-            <th>Produto</th> 
-            <th>Tanque</th> 
-            <th>Disponível para Envio (m³)</th> 
-            <th>Espaço para Recebimento (m³)</th> 
-          </tr> 
-        </thead> 
-        <tbody></tbody> 
-      </table> 
-    </div> 
+    <script type="module"> 
+        import { setupImportacao } from '../js/estoque/importacao.js'; 
+        import { setupTransferencia, updateSelectionState } from '../js/estoque/transferencia.js'; 
+        import { initVisualizacao } from '../js/estoque/visualizacao.js'; 
  
-    <button id="transferButton">Transferir Dados Selecionados para o Planejador</button> 
-  </div> 
+        document.addEventListener('DOMContentLoaded', () => { 
+            setupImportacao(); 
+            setupTransferencia(); 
+            initVisualizacao(); 
+            updateSelectionState(); 
  
-  <footer id="footer"> 
-    <p>&copy; 2024 Planejador de Operações. Tepar.</p> 
-  </footer> 
- 
-  <script src="../js/estoque/importacao.js"></script> 
-  <script src="../js/estoque/visualizacao.js"></script> 
-  <script src="../js/estoque/transferencia.js"></script> 
-  <script> 
-    document.addEventListener('DOMContentLoaded', () => { 
-      setupImportacao(); 
-      setupTransferencia(); 
-    }); 
-  </script> 
+            const dropZone = document.querySelector('drop-zone'); 
+            dropZone.addEventListener('fileProcessed', (event) => { 
+                if (event.detail.success) { 
+                    initVisualizacao(); 
+                    updateSelectionState(); 
+                } else { 
+                    alert('Erro ao processar o arquivo: ' + event.detail.error); 
+                } 
+            }); 
+        }); 
+    </script> 
 </body> 
 </html> 

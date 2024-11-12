@@ -1,119 +1,40 @@
 <!DOCTYPE html> 
 <html lang="pt-BR"> 
 <head> 
-  <meta charset="UTF-8"> 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-  <title>Planejador de Operações</title> 
-  <link rel="stylesheet" href="css/styles.css"> 
-  <link rel="icon" href="images/favicon.ico" type="image/x-icon"> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Planejador de Operações</title> 
+    <link rel="stylesheet" href="css/styles.css"> 
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon"> 
+    <script type="module" src="js/components/Header.js"></script> 
+    <script type="module" src="js/components/Footer.js"></script> 
+    <script type="module" src="js/components/StockTable.js"></script> 
+    <script type="module" src="js/components/OperationForm.js"></script> 
+    <script type="module" src="js/components/OperationsTable.js"></script> 
 </head> 
 <body> 
-  <header> 
-    <div class="header-content"> 
-      <img src="images/logo.jpg" alt="Logo do Planejador de Operações" id="logo"> 
-      <div class="title-nav"> 
-        <h1>Planejador de Operações</h1> 
-        <nav> 
-          <a href="pages/estoque.html">Importar Estoque</a> 
-        </nav> 
-      </div> 
-    </div> 
-  </header> 
+    <app-header></app-header> 
  
-  <div id="app"> 
-    <div id="stockDataDisplay"> 
-      <h2>Dados do Estoque Inicial</h2> 
-      <table id="initialStockDataTable"> 
-        <thead> 
-          <tr> 
-            <th>Produto</th> 
-            <th>Tanque</th> 
-            <th>Disponível para Envio (m³)</th> 
-            <th>Espaço para Recebimento (m³)</th> 
-          </tr> 
-        </thead> 
-        <tbody></tbody> 
-      </table> 
+    <div id="app"> 
+        <stock-table></stock-table> 
  
-      <h2>Dados do Estoque Final</h2> 
-      <table id="currentStockDataTable"> 
-        <thead> 
-          <tr> 
-            <th>Produto</th> 
-            <th>Tanque</th> 
-            <th>Disponível para Envio (m³)</th> 
-            <th>Espaço para Recebimento (m³)</th> 
-          </tr> 
-        </thead> 
-        <tbody></tbody> 
-      </table> 
+        <div id="totals"> 
+            <h2>Programação Total</h2> 
+            <p>Insira os volumes totais programados. Use valores positivos para recebimento e negativos para envio.</p> 
+            <label for="totalNavio">Total Programado para Navio (m³):</label> 
+            <input type="number" id="totalNavio" value="0"> 
+            <label for="totalOlapa">Total Programado para Olapa (m³):</label> 
+            <input type="number" id="totalOlapa" value="0"> 
+            <button id="recalculateButton">Recalcular Quantidades</button> 
+        </div> 
+ 
+        <operation-form></operation-form> 
+ 
+        <operations-table></operations-table> 
     </div> 
  
-    <div id="totals"> 
-      <h2>Programação Total</h2> 
-      <p>Insira os volumes totais programados. Use valores positivos para recebimento e negativos para envio.</p> 
-      <label for="totalNavio">Total Programado para Navio (m³):</label> 
-      <input type="number" id="totalNavio" value="0"> 
-      <label for="totalOlapa">Total Programado para Olapa (m³):</label> 
-      <input type="number" id="totalOlapa" value="0"> 
-      <button id="recalculateButton">Recalcular Quantidades</button> 
-    </div> 
-       
-    <div id="data-entry"> 
-      <h2>Adicionar Operação</h2> 
-      <select id="tank"></select> 
-      <input type="number" id="volume" placeholder="Volume (m3)"> 
-      <input type="number" id="flowRate" placeholder="Vazão (m3/h)"> 
-      <select id="direction"> 
-        <option value="receber">Receber</option> 
-        <option value="enviar">Enviar</option> 
-      </select> 
-      <select id="operationType"> 
-        <option value="navio">Navio</option> 
-        <option value="olapa">Olapa</option> 
-      </select> 
-      <input type="datetime-local" id="startTime"> 
-      <button id="addOperationButton">Adicionar Operação</button> 
-    </div> 
-       
-    <div id="optimization-results"> 
-      <h2>Operações Planejadas</h2> 
-      <table id="operationsTable"> 
-        <thead> 
-          <tr> 
-            <th>Produto</th> 
-            <th>Tanque</th> 
-            <th>Disponível para Envio (m³)</th> 
-            <th>Espaço para Recebimento (m³)</th> 
-            <th>Vazão (m3/h)</th> 
-            <th>Direção</th> 
-            <th>Tipo de Operação</th> 
-            <th>Início</th> 
-            <th>Término</th> 
-            <th>Volume Operado (m³)</th> 
-            <th>Falta para Navio</th> 
-            <th>Falta para Olapa</th> 
-            <th>Ações</th> 
-          </tr> 
-        </thead> 
-        <tbody></tbody> 
-      </table> 
-    </div> 
-  </div> 
+    <app-footer></app-footer> 
  
-  <footer id="footer"> 
-    <p>&copy; 2024 Planejador de Operações. Tepar.</p> 
-    <a href="https://github.com/Dicommunitas/Planejador-de-Opera-es" target="_blank">Visite o projeto no GitHub</a> 
-  </footer> 
- 
-  <script src="js/estoque/importacao.js"></script> 
-  <script src="js/estoque/visualizacao.js"></script> 
-  <script src="js/estoque/transferencia.js"></script> 
-  <script src="js/planejador/addOperation.js"></script> 
-  <script src="js/planejador/clearForm.js"></script> 
-  <script src="js/planejador/updateFalta.js"></script> 
-  <script src="js/planejador/sortOperations.js"></script> 
-  <script src="js/planejador/checkOverlap.js"></script> 
-  <script src="js/main.js"></script> 
+    <script type="module" src="js/main.js"></script> 
 </body> 
 </html> 
