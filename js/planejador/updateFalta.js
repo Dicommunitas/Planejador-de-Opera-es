@@ -1,72 +1,26 @@
-// updateFalta.js 
- 
-import { getOperations } from '../state/operations.js'; 
-import { formatNumber } from '../utils/numberUtils.js'; 
- 
-/** 
- * Atualiza os valores de falta para navio e olapa na tabela de operações 
- * @param {number} totalNavio - Total programado para navio 
- * @param {number} totalOlapa - Total programado para olapa 
- */ 
-export function updateFalta(totalNavio, totalOlapa) { 
-  const operations = getOperations(); 
+function updateFalta() { 
+  const totalNavioInput = document.getElementById('totalNavio'); 
+  const totalOlapaInput = document.getElementById('totalOlapa'); 
   const operationsTableBody = document.querySelector('#operationsTable tbody'); 
  
-  let faltaNavio = totalNavio; 
-  let faltaOlapa = totalOlapa; 
+  let faltaNavio = parseFloat(totalNavioInput.value) || 0; 
+  let faltaOlapa = parseFloat(totalOlapaInput.value) || 0; 
  
-  operations.forEach((operation, index) => { 
-    const row = operationsTableBody.rows[index]; 
+  operationsTableBody.querySelectorAll('tr').forEach(row => { 
     row.classList.remove('navio', 'olapa'); 
      
-    const volumeOperado = operation.volumeOperado; 
+    const volumeOperado = parseFloat(row.cells[9].textContent); 
+    const operationType = row.cells[6].textContent; 
  
-    if (operation.operationType === 'navio') { 
+    if (operationType === 'navio') { 
       faltaNavio -= volumeOperado; 
       row.classList.add('navio'); 
-    } else if (operation.operationType === 'olapa') { 
+    } else if (operationType === 'olapa') { 
       faltaOlapa -= volumeOperado; 
       row.classList.add('olapa'); 
     } 
  
-    // Atualiza as células de falta na linha 
-    row.cells[10].textContent = formatNumber(faltaNavio); 
-    row.cells[11].textContent = formatNumber(faltaOlapa); 
-  }); 
- 
-  // Atualiza o total restante 
-  updateTotalRestante(faltaNavio, faltaOlapa); 
-} 
- 
-/** 
- * Atualiza o display do total restante 
- * @param {number} faltaNavio - Falta restante para navio 
- * @param {number} faltaOlapa - Falta restante para olapa 
- */ 
-function updateTotalRestante(faltaNavio, faltaOlapa) { 
-  const totalRestanteElement = document.getElementById('totalRestante'); 
-  if (totalRestanteElement) { 
-    totalRestanteElement.textContent = `Restante: Navio ${formatNumber(faltaNavio)} m³, Olapa ${formatNumber(faltaOlapa)} m³`; 
-  } 
-} 
- 
-/** 
- * Configura os listeners para os inputs de total programado 
- */ 
-export function setupFaltaListeners() { 
-  const totalNavioInput = document.getElementById('totalNavio'); 
-  const totalOlapaInput = document.getElementById('totalOlapa'); 
- 
-  [totalNavioInput, totalOlapaInput].forEach(input => { 
-    input.addEventListener('change', () => { 
-      const totalNavio = parseFloat(totalNavioInput.value) || 0; 
-      const totalOlapa = parseFloat(totalOlapaInput.value) || 0; 
-      updateFalta(totalNavio, totalOlapa); 
-    }); 
+    row.cells[10].textContent = faltaNavio.toFixed(2); 
+    row.cells[11].textContent = faltaOlapa.toFixed(2); 
   }); 
 } 
- 
-export default { 
-  updateFalta, 
-  setupFaltaListeners 
-}; 
