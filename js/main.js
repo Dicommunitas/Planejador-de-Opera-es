@@ -1,95 +1,101 @@
-// main.js 
- 
-import Header from './components/Header.js'; 
-import Footer from './components/Footer.js'; 
-import OperationForm from './components/OperationForm.js'; 
-import StockTable from './components/StockTable.js'; 
-import OperationsTable from './components/OperationsTable.js'; 
-import { loadOperations, sortOperations, calculateFalta, checkOverlap } from './state/operations.js'; 
-import { getInitialStockData, getCurrentStockData, updateStockDisplay } from './state/stockData.js'; 
-import { setupFaltaListeners } from './planejador/updateFalta.js'; 
- 
 document.addEventListener('DOMContentLoaded', () => { 
-    initializeComponents(); 
-    setupEventListeners(); 
-    loadInitialData(); 
+  setupEventListeners(); 
+  loadStockData(); 
+  populateTankSelect(); 
 }); 
- 
-function initializeComponents() { 
-    customElements.define('app-header', Header); 
-    customElements.define('app-footer', Footer); 
-    customElements.define('operation-form', OperationForm); 
-    customElements.define('stock-table', StockTable); 
-    customElements.define('operations-table', OperationsTable); 
- 
-    document.body.insertAdjacentHTML('afterbegin', '<app-header></app-header>'); 
-    document.body.insertAdjacentHTML('beforeend', '<app-footer></app-footer>'); 
-     
-    const app = document.getElementById('app'); 
-    app.innerHTML = ` 
-        <stock-table></stock-table> 
-        <operation-form></operation-form> 
-        <operations-table></operations-table> 
-    `; 
-} 
- 
+  
 function setupEventListeners() { 
-    const operationForm = document.querySelector('operation-form'); 
-    const operationsTable = document.querySelector('operations-table'); 
-    const stockTable = document.querySelector('stock-table'); 
+  const addOperationButton = document.getElementById('addOperationButton'); 
+  const recalculateButton = document.getElementById('recalculateButton'); 
  
-    operationForm.addEventListener('operationAdded', handleOperationAdded); 
-    operationsTable.addEventListener('operationDeleted', handleOperationDeleted); 
-    operationsTable.addEventListener('operationCopied', handleOperationCopied); 
- 
-    setupFaltaListeners(); 
- 
-    document.addEventListener('stockUpdated', () => { 
-        stockTable.updateData(); 
-        operationsTable.updateTable(); 
-    }); 
-} 
- 
-function loadInitialData() { 
-    loadOperations(); 
-    const initialStock = getInitialStockData(); 
-    const currentStock = getCurrentStockData(); 
-     
-    document.querySelector('stock-table').updateData(initialStock, currentStock); 
-    document.querySelector('operations-table').updateTable(); 
- 
-    updateStockDisplay(); 
-} 
- 
-function handleOperationAdded() { 
+  addOperationButton.addEventListener('click', () => { 
+    addOperation(); 
     sortOperations(); 
     checkOverlap(); 
     updateFalta(); 
-    updateStockDisplay(); 
-    document.querySelector('operations-table').updateTable(); 
-} 
+    updateCurrentStockDisplay(); 
+    clearForm(); 
+  }); 
  
-function handleOperationDeleted() { 
+  recalculateButton.addEventListener('click', () => { 
     updateFalta(); 
-    updateStockDisplay(); 
-    document.querySelector('operations-table').updateTable(); 
-} 
- 
-function handleOperationCopied() { 
     sortOperations(); 
     checkOverlap(); 
-    updateFalta(); 
-    updateStockDisplay(); 
-    document.querySelector('operations-table').updateTable(); 
+  }); 
 } 
  
-function updateFalta() { 
-    const totalNavio = parseFloat(document.getElementById('totalNavio').value) || 0; 
-    const totalOlapa = parseFloat(document.getElementById('totalOlapa').value) || 0; 
-    const { faltaNavio, faltaOlapa } = calculateFalta(totalNavio, totalOlapa); 
-     
-    // Atualizar a exibição da falta (você pode adicionar elementos HTML para mostrar isso) 
-    console.log(`Falta para Navio: ${faltaNavio}, Falta para Olapa: ${faltaOlapa}`); 
+function loadStockData() { 
+  const stockData = getStockData(); 
+  updateInitialStockDisplay(stockData); 
+  updateCurrentStockDisplay(stockData); 
+  console.log('Dados do estoque carregados:', stockData); 
 } 
  
-export { updateFalta }; 
+function populateTankSelect() { 
+  const tankSelect = document.getElementById('tank'); 
+  const stockData = getStockData(); 
+    
+  tankSelect.innerHTML = '<option value="">Selecione um tanque</option>'; 
+  stockData.forEach(item => { 
+    const option = document.createElement('option'); 
+    option.value = item.tanque.trim(); 
+    option.textContent = `${item.tanque.trim()} - ${item.produto.trim()}`; 
+    tankSelect.appendChild(option); 
+  }); 
+} 
+ 
+function updateInitialStockDisplay(stockData) { 
+  updateStockTable('#initialStockDataTable', stockData); 
+} 
+ 
+function updateCurrentStockDisplay() { 
+  const currentStockData = getStockData(); 
+  updateStockTable('#currentStockDataTable', currentStockData); 
+} 
+ 
+function updateStockTable(tableSelector, stockData) { 
+  const stockTableBody = document.querySelector(`${tableSelector} tbody`); 
+  stockTableBody.innerHTML = ''; 
+ 
+  stockData.forEach(item => { 
+    const row = stockTableBody.insertRow(); 
+    row.innerHTML = ` 
+      <td>${item.produto.trim()}</td> 
+      <td>${item.tanque.trim()}</td> 
+      <td>${parseFloat(item.disponivelEnvio).toFixed(2)}</td> 
+      <td>${parseFloat(item.espacoRecebimento).toFixed(2)}</td> 
+    `; 
+  }); 
+} 
+ 
+function saveStockData(stockData) { 
+  const processedStockData = stockData.map(item => ({ 
+    ...item, 
+    disponivelEnvio: parseFloat(item.disponivelEnvio), 
+    espacoRecebimento: parseFloat(item.espacoRecebimento), 
+    produto: item.produto.trim(), 
+    tanque: item.tanque.trim() 
+  })); 
+  localStorage.setItem('stockData', JSON.stringify(processedStockData)); 
+  updateCurrentStockDisplay(); 
+  populateTankSelect(); 
+} 
+ 
+function getStockData() { 
+  const stockData = JSON.parse(localStorage.getItem('stockData') || '[]'); 
+  return stockData.map(item => ({ 
+    ...item, 
+    disponivelEnvio: parseFloat(item.disponivelEnvio), 
+    espacoRecebimento: parseFloat(item.espacoRecebimento), 
+    produto: item.produto.trim(), 
+    tanque: item.tanque.trim() 
+  })); 
+} 
+ 
+function saveInitialStockData(stockData) { 
+  localStorage.setItem('initialStockData', JSON.stringify(stockData)); 
+} 
+ 
+function getInitialStockData() { 
+  return JSON.parse(localStorage.getItem('initialStockData') || '[]'); 
+} 
