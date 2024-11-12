@@ -15,6 +15,10 @@ export function getInitialStockData() {
   const data = localStorage.getItem(INITIAL_STOCK_KEY); 
   return data ? JSON.parse(data) : []; 
 } 
+
+export function getStockData() {
+  getCurrentStockData();
+}
  
 // Função para calcular o estoque final com base nas operações 
 export function getCurrentStockData() { 
@@ -40,6 +44,14 @@ export function getCurrentStockData() {
  
   return currentStock; 
 } 
+
+export function saveStockData() {
+  updateStockDisplay()
+}
+
+export function updateCurrentStockDisplay() {
+  updateStockDisplay()
+}
  
 // Função para atualizar o estoque exibido 
 export function updateStockDisplay() { 

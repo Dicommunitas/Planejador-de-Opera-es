@@ -1,6 +1,7 @@
 // StockTable.js 
  
-import { getStockData, getInitialStockData } from '../state/stockData.js'; 
+
+import { getInitialStockData, getCurrentStockData } from '../state/stockData.js';
  
 class StockTable extends HTMLElement { 
   constructor() { 
@@ -73,7 +74,7 @@ class StockTable extends HTMLElement {
  
   loadData() { 
     const initialStockData = getInitialStockData(); 
-    const currentStockData = getStockData(); 
+    const currentStockData = getInitialStockData(); 
  
     this.updateStockTable('#initialStockDataTable', initialStockData); 
     this.updateStockTable('#currentStockDataTable', currentStockData); 

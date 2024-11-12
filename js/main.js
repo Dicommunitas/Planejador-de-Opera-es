@@ -10,7 +10,7 @@ import { getInitialStockData, getCurrentStockData, updateStockDisplay } from './
 import { setupFaltaListeners } from './planejador/updateFalta.js'; 
  
 document.addEventListener('DOMContentLoaded', () => { 
-    initializeComponents(); 
+    //initializeComponents(); 
     setupEventListeners(); 
     loadInitialData(); 
 }); 

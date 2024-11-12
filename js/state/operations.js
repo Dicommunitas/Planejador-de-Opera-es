@@ -13,7 +13,7 @@ export function loadOperations() {
 } 
  
 // Salvar operações no localStorage 
-function saveOperations() { 
+export function saveOperations() { 
   saveToLocalStorage(OPERATIONS_KEY, operations); 
 } 
  
@@ -135,5 +135,6 @@ export default {
   copyOperation, 
   sortOperations, 
   calculateFalta, 
+  saveOperations,
   checkOverlap 
 }; 

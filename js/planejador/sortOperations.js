@@ -1,6 +1,6 @@
 // sortOperations.js  
   
-import { getOperations, saveOperations } from '../state/operations.js';  
+import { saveOperations } from '../state/operations.js';
 import { parseDateBR } from '../utils/dateUtils.js';  
   
 /**  
