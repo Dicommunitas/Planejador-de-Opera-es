@@ -1,3 +1,16 @@
+/* Estilos gerais */ 
+:root { 
+  --primary-color: #007bff; 
+  --secondary-color: #0056b3; 
+  --background-color: #f0f0f0; 
+  --text-color: #333; 
+  --border-color: #ddd; 
+  --hover-color: #e9ecef; 
+  --navio-color: #d1ecf1; 
+  --olapa-color: #d4edda; 
+  --encavalado-color: #ffcccc; 
+} 
+ 
 body { 
   font-family: Arial, sans-serif; 
   margin: 0; 
@@ -5,6 +18,7 @@ body {
   display: flex; 
   flex-direction: column; 
   min-height: 100vh; 
+  color: var(--text-color); 
 } 
  
 #app { 
@@ -15,8 +29,9 @@ body {
   padding: 20px; 
 } 
  
+/* Cabeçalho e rodapé */ 
 header, footer { 
-  background-color: #f0f0f0; 
+  background-color: var(--background-color); 
   padding: 1em; 
   width: 100%; 
   box-sizing: border-box; 
@@ -57,17 +72,17 @@ nav {
   margin-left: auto; 
 } 
  
-nav a { 
+nav a, .button { 
   text-decoration: none; 
   color: #fff; 
-  background-color: #007bff; 
+  background-color: var(--primary-color); 
   padding: 0.5em 1em; 
   border-radius: 4px; 
   transition: background-color 0.3s; 
 } 
  
-nav a:hover { 
-  background-color: #0056b3; 
+nav a:hover, .button:hover { 
+  background-color: var(--secondary-color); 
 } 
  
 footer { 
@@ -75,7 +90,7 @@ footer {
 } 
  
 footer a { 
-  color: #007bff; 
+  color: var(--primary-color); 
   text-decoration: none; 
 } 
  
@@ -83,32 +98,27 @@ footer a:hover {
   text-decoration: underline; 
 } 
  
-h2 { 
-  color: #333; 
-} 
- 
-input, select { 
+/* Formulários e inputs */ 
+input, select, button { 
   margin-bottom: 1em; 
   padding: 0.5em; 
-  border: 1px solid #ccc; 
+  border: 1px solid var(--border-color); 
   border-radius: 4px; 
 } 
  
 button { 
-  padding: 0.5em 1em; 
-  font-size: 1em; 
   cursor: pointer; 
-  background-color: #007bff; 
+  background-color: var(--primary-color); 
   color: white; 
   border: none; 
-  border-radius: 4px; 
   transition: background-color 0.3s; 
 } 
  
 button:hover { 
-  background-color: #0056b3; 
+  background-color: var(--secondary-color); 
 } 
  
+/* Tabelas */ 
 table { 
   width: 100%; 
   border-collapse: collapse; 
@@ -116,13 +126,13 @@ table {
 } 
  
 th, td { 
-  border: 1px solid #ddd; 
+  border: 1px solid var(--border-color); 
   padding: 8px; 
   text-align: left; 
 } 
  
 th { 
-  background-color: #f0f0f0; 
+  background-color: var(--background-color); 
   font-weight: bold; 
 } 
  
@@ -130,61 +140,35 @@ tr:nth-child(even) {
   background-color: #f2f2f2; 
 } 
  
-tr:nth-child(odd) { 
-  background-color: #ffffff; 
-} 
- 
 tr:hover { 
-  background-color: #e9ecef; 
+  background-color: var(--hover-color); 
 } 
  
 tr.navio { 
-  background-color: #d1ecf1; 
+  background-color: var(--navio-color); 
 } 
  
 tr.olapa { 
-  background-color: #d4edda; 
+  background-color: var(--olapa-color); 
 } 
  
 tr.encavalado { 
-  background-color: #ffcccc !important; 
+  background-color: var(--encavalado-color) !important; 
 } 
  
-#stockDataDisplay { 
+/* Componentes específicos */ 
+#stockDataDisplay, #totals, #data-entry, #optimization-results { 
   margin-bottom: 30px; 
 } 
  
-#totals { 
+#totals, #data-entry, #importInstructions { 
   background-color: #f8f9fa; 
   padding: 20px; 
   border-radius: 4px; 
-  margin-bottom: 30px; 
-} 
- 
-#totals h2 { 
-  margin-top: 0; 
-} 
- 
-#data-entry { 
-  background-color: #e9ecef; 
-  padding: 20px; 
-  border-radius: 4px; 
-  margin-bottom: 30px; 
-} 
- 
-#optimization-results { 
-  overflow-x: auto; 
-} 
- 
-#importInstructions { 
-  background-color: #f8f9fa; 
-  padding: 20px; 
-  border-radius: 4px; 
-  margin-bottom: 30px; 
 } 
  
 #dropZone { 
-  border: 2px dashed #ccc; 
+  border: 2px dashed var(--border-color); 
   border-radius: 4px; 
   padding: 20px; 
   text-align: center; 
@@ -194,7 +178,7 @@ tr.encavalado {
 } 
  
 #dropZone:hover { 
-  background-color: #e9ecef; 
+  background-color: var(--hover-color); 
 } 
  
 #transferButton { 
@@ -208,6 +192,7 @@ tr.encavalado {
   margin-top: 30px; 
 } 
  
+/* Botões de ação na tabela de operações */ 
 #operationsTable td:last-child { 
   white-space: nowrap; 
   text-align: center; 
@@ -220,18 +205,14 @@ tr.encavalado {
   font-size: 0.9em; 
   border: none; 
   border-radius: 3px; 
-  cursor: pointer; 
-  transition: background-color 0.3s; 
 } 
  
 #operationsTable .copyOperation { 
   background-color: #4CAF50; 
-  color: white; 
 } 
  
 #operationsTable .deleteOperation { 
   background-color: #f44336; 
-  color: white; 
 } 
  
 #operationsTable .copyOperation:hover { 
@@ -242,26 +223,21 @@ tr.encavalado {
   background-color: #da190b; 
 } 
  
+/* Responsividade */ 
 @media (max-width: 1200px) { 
   #app { 
     width: 98%; 
   } 
-    
+   
   table { 
     font-size: 0.9em; 
   } 
 } 
  
 @media (max-width: 768px) { 
-  .header-content { 
+  .header-content, .title-nav { 
     flex-direction: column; 
     align-items: center; 
-  } 
- 
-  .title-nav { 
-    flex-direction: column; 
-    align-items: center; 
-    width: 100%; 
   } 
  
   nav { 
@@ -280,7 +256,7 @@ tr.encavalado {
     width: 100%; 
     padding: 10px; 
   } 
-    
+ 
   table { 
     font-size: 0.8em; 
   } 

@@ -1,20 +1,25 @@
-function addOperation() { 
+// addOperation.js 
+ 
+import { getStockData, saveStockData } from '../state/stockData.js'; 
+import { addOperation as addOperationToState } from '../state/operations.js'; 
+import { validateOperation } from '../utils/validation.js'; 
+import { formatDateBR } from '../utils/dateUtils.js'; 
+import { updateFalta } from './updateFalta.js'; 
+import { sortOperations } from './sortOperations.js'; 
+import { checkOverlap } from './checkOverlap.js'; 
+ 
+export function addOperation() { 
   console.log('Função addOperation iniciada'); 
  
   // 1. Coleta os dados do formulário 
-  const tankSelect = document.getElementById('tank'); 
-  const tank = tankSelect.value; 
-  const volume = parseFloat(document.getElementById('volume').value); 
-  const flowRate = parseFloat(document.getElementById('flowRate').value); 
-  const direction = document.getElementById('direction').value; 
-  const operationType = document.getElementById('operationType').value; 
-  const startTimeStr = document.getElementById('startTime').value; 
+  const formData = getFormData(); 
  
-  console.log('Dados coletados:', { tank, volume, flowRate, direction, operationType, startTimeStr }); 
+  console.log('Dados coletados:', formData); 
  
   // 2. Valida os dados 
-  if (!tank || isNaN(volume) || isNaN(flowRate) || !startTimeStr) { 
-    alert('Preencha todos os campos corretamente.'); 
+  const validationResult = validateOperation(formData); 
+  if (!validationResult.isValid) { 
+    alert(validationResult.errors.join('\n')); 
     return; 
   } 
  
@@ -22,101 +27,114 @@ function addOperation() {
   const stockData = getStockData(); 
   console.log('Dados do estoque recuperados:', stockData); 
  
-  const tankData = stockData.find(item => item.tanque.trim() === tank.trim()); 
+  const tankData = stockData.find(item => item.tanque.trim() === formData.tank.trim()); 
   if (!tankData) { 
     alert('Dados do tanque não encontrados.'); 
     return; 
   } 
  
-  if (direction === 'enviar' && volume > tankData.disponivelEnvio) { 
-    alert(`Volume excede a capacidade disponível para envio (${tankData.disponivelEnvio.toFixed(2)} m³).`); 
-    return; 
-  } 
- 
-  if (direction === 'receber' && volume > tankData.espacoRecebimento) { 
-    alert(`Volume excede o espaço disponível para recebimento (${tankData.espacoRecebimento.toFixed(2)} m³).`); 
+  if (!checkTankCapacity(tankData, formData)) { 
     return; 
   } 
  
   // 4. Calcula o horário de término 
-  const startTime = new Date(startTimeStr); 
-  const endTime = new Date(startTime.getTime() + (volume / flowRate) * 60 * 60 * 1000); 
+  const endTime = calculateEndTime(formData); 
  
-  // 5. Cria uma nova linha na tabela 
-  const newRow = document.createElement('tr'); 
-  const volumeOperado = direction === 'receber' ? volume : -volume; 
-  newRow.innerHTML = ` 
-    <td>${tankData.produto}</td> 
-    <td>${tank}</td> 
-    <td>${tankData.disponivelEnvio.toFixed(2)}</td> 
-    <td>${tankData.espacoRecebimento.toFixed(2)}</td> 
-    <td>${flowRate.toFixed(2)}</td> 
-    <td>${direction}</td> 
-    <td>${operationType}</td> 
-    <td>${startTime.toLocaleString('pt-BR', { hour12: false })}</td> 
-    <td>${endTime.toLocaleString('pt-BR', { hour12: false })}</td> 
-    <td>${volumeOperado.toFixed(2)}</td> 
-    <td>0</td> 
-    <td>0</td> 
-    <td> 
-      <button class="copyOperation">Copiar</button> 
-      <button class="deleteOperation">Deletar</button> 
-    </td> 
-  `; 
+  // 5. Adiciona a operação ao estado 
+  const newOperation = addOperationToState({ 
+    ...formData, 
+    produto: tankData.produto, 
+    endTime, 
+    volumeOperado: formData.direction === 'receber' ? formData.volume : -formData.volume 
+  }); 
  
-  // 6. Adiciona a nova linha à tabela 
+  // 6. Atualiza a UI 
+  updateUI(newOperation, tankData); 
+ 
+  // 7. Atualiza os dados de estoque 
+  updateStockData(tankData, formData); 
+ 
+  // 8. Atualiza cálculos e exibições 
+  updateFalta(); 
+  sortOperations(); 
+  checkOverlap(); 
+ 
+  console.log('Função addOperation concluída'); 
+} 
+ 
+function getFormData() { 
+  return { 
+    tank: document.getElementById('tank').value, 
+    volume: parseFloat(document.getElementById('volume').value), 
+    flowRate: parseFloat(document.getElementById('flowRate').value), 
+    direction: document.getElementById('direction').value, 
+    operationType: document.getElementById('operationType').value, 
+    startTime: new Date(document.getElementById('startTime').value) 
+  }; 
+} 
+ 
+function checkTankCapacity(tankData, formData) { 
+  if (formData.direction === 'enviar' && formData.volume > tankData.disponivelEnvio) { 
+    alert(`Volume excede a capacidade disponível para envio (${tankData.disponivelEnvio.toFixed(2)} m³).`); 
+    return false; 
+  } 
+ 
+  if (formData.direction === 'receber' && formData.volume > tankData.espacoRecebimento) { 
+    alert(`Volume excede o espaço disponível para recebimento (${tankData.espacoRecebimento.toFixed(2)} m³).`); 
+    return false; 
+  } 
+ 
+  return true; 
+} 
+ 
+function calculateEndTime(formData) { 
+  return new Date(formData.startTime.getTime() + (formData.volume / formData.flowRate) * 60 * 60 * 1000); 
+} 
+ 
+function updateUI(newOperation, tankData) { 
   const operationsTableBody = document.querySelector('#operationsTable tbody'); 
   if (operationsTableBody) { 
+    const newRow = createOperationRow(newOperation, tankData); 
     operationsTableBody.appendChild(newRow); 
     console.log('Nova linha adicionada à tabela'); 
     console.log('Conteúdo da nova linha:', newRow.innerHTML); 
   } else { 
     console.error('Elemento #operationsTable tbody não encontrado'); 
   } 
- 
-  // 7. Atualiza os dados de estoque 
-  if (direction === 'enviar') { 
-    tankData.disponivelEnvio -= volume; 
-    tankData.espacoRecebimento += volume; 
-  } else { 
-    tankData.disponivelEnvio += volume; 
-    tankData.espacoRecebimento -= volume; 
-  } 
-  saveStockData(stockData); 
- 
-  // 8. Configura os eventos dos botões 
-  newRow.querySelector('.deleteOperation').addEventListener('click', () => { 
-    // Restaura o volume ao estoque quando a operação é deletada 
-    if (direction === 'enviar') { 
-      tankData.disponivelEnvio += volume; 
-      tankData.espacoRecebimento -= volume; 
-    } else { 
-      tankData.disponivelEnvio -= volume; 
-      tankData.espacoRecebimento += volume; 
-    } 
-    saveStockData(stockData); 
- 
-    newRow.remove(); 
-    updateFalta(); 
-    checkOverlap(); 
-    updateCurrentStockDisplay(); 
-  }); 
- 
-  newRow.querySelector('.copyOperation').addEventListener('click', () => { 
-    document.getElementById('tank').value = tank; 
-    document.getElementById('volume').value = volume; 
-    document.getElementById('flowRate').value = flowRate; 
-    document.getElementById('direction').value = direction; 
-    document.getElementById('operationType').value = operationType; 
-    document.getElementById('startTime').value = startTimeStr; 
-  }); 
- 
-  // 9. Atualiza cálculos e exibições 
-  updateFalta(); 
-  sortOperations(); 
-  checkOverlap(); 
-  updateCurrentStockDisplay(); 
-  clearForm(); 
- 
-  console.log('Função addOperation concluída'); 
 } 
+ 
+function createOperationRow(operation, tankData) { 
+  const row = document.createElement('tr'); 
+  row.innerHTML = ` 
+    <td>${tankData.produto}</td> 
+    <td>${operation.tank}</td> 
+    <td>${tankData.disponivelEnvio.toFixed(2)}</td> 
+    <td>${tankData.espacoRecebimento.toFixed(2)}</td> 
+    <td>${operation.flowRate.toFixed(2)}</td> 
+    <td>${operation.direction}</td> 
+    <td>${operation.operationType}</td> 
+    <td>${formatDateBR(operation.startTime)}</td> 
+    <td>${formatDateBR(operation.endTime)}</td> 
+    <td>${operation.volumeOperado.toFixed(2)}</td> 
+    <td>0</td> 
+    <td>0</td> 
+    <td> 
+      <button class="copyOperation" data-id="${operation.id}">Copiar</button> 
+      <button class="deleteOperation" data-id="${operation.id}">Deletar</button> 
+    </td> 
+  `; 
+  return row; 
+} 
+ 
+function updateStockData(tankData, formData) { 
+  if (formData.direction === 'enviar') { 
+    tankData.disponivelEnvio -= formData.volume; 
+    tankData.espacoRecebimento += formData.volume; 
+  } else { 
+    tankData.disponivelEnvio += formData.volume; 
+    tankData.espacoRecebimento -= formData.volume; 
+  } 
+  saveStockData(getStockData()); 
+} 
+ 
+export default addOperation; 
