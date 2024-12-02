@@ -69,14 +69,15 @@ class OperationForm extends HTMLElement {
     `; 
   } 
  
-  setupEventListeners() {
-    const addOperationButton = this.shadowRoot.getElementById('addOperationButton');
-    addOperationButton.addEventListener('click', this.handleAddOperation.bind(this));
+  setupEventListeners() { 
+    const addOperationButton = this.shadowRoot.getElementById('addOperationButton'); 
+    addOperationButton.addEventListener('click', this.handleAddOperation.bind(this)); 
+   
+    document.addEventListener('stockUpdated', () => { 
+      this.populateTankSelect(); 
+    }); 
+  } 
   
-    this.addEventListener('stockUpdated', () => {
-      this.populateTankSelect();
-    });
-  }
  
   handleAddOperation() { 
     const formData = this.getFormData(); 
@@ -100,6 +101,7 @@ class OperationForm extends HTMLElement {
       startTime: this.shadowRoot.getElementById('startTime').value 
     }; 
   } 
+  
  
   validateFormData(formData) { 
     if (!formData.tank || isNaN(formData.volume) || isNaN(formData.flowRate) || !formData.startTime) { 

@@ -16,9 +16,9 @@ export function getInitialStockData() {
   return data ? JSON.parse(data) : []; 
 } 
 
-export function getStockData() {
-  getCurrentStockData();
-}
+export function getStockData() { 
+  return getCurrentStockData(); 
+} 
  
 // Função para calcular o estoque final com base nas operações 
 export function getCurrentStockData() { 
@@ -77,3 +77,4 @@ export function validateOperation(tankName, volume, direction) {
     return tankData.disponivelEnvio >= volume; 
   } 
 } 
+ 

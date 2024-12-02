@@ -10,7 +10,12 @@ const OPERATIONS_KEY = 'plannedOperations';
  */ 
 export function saveToLocalStorage(key, data) { 
   try { 
-    const serializedData = JSON.stringify(data); 
+    let dataToSave = data; 
+    if (key === 'stockData') { 
+      // Filtra apenas os itens selecionados 
+      dataToSave = data.filter(item => item.selected); 
+    } 
+    const serializedData = JSON.stringify(dataToSave); 
     localStorage.setItem(key, serializedData); 
   } catch (error) { 
     console.error('Erro ao salvar no localStorage:', error); 

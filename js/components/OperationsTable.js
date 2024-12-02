@@ -17,7 +17,29 @@ class OperationsTable extends HTMLElement {
     this.loadOperations(); 
     this.setupEventListeners(); 
   } 
+   
+  setupEventListeners() { 
+    this.shadowRoot.addEventListener('click', (event) => { 
+      if (event.target.classList.contains('copyOperation')) { 
+        const index = event.target.dataset.index; 
+        this.handleCopyOperation(index); 
+      } else if (event.target.classList.contains('deleteOperation')) { 
+        const index = event.target.dataset.index; 
+        this.handleDeleteOperation(index); 
+      } 
+    }); 
+  } 
  
+  handleCopyOperation(index) { 
+    // Lógica para copiar a operação 
+    console.log('Copiar operação:', index); 
+  } 
+ 
+  handleDeleteOperation(index) { 
+    // Lógica para deletar a operação 
+    console.log('Deletar operação:', index); 
+  } 
+
   render() { 
     this.shadowRoot.innerHTML = ` 
       <style> 
@@ -104,7 +126,7 @@ class OperationsTable extends HTMLElement {
   } 
  
   loadOperations() { 
-    const operations = getOperations(); 
+    const operations = sortOperations(); 
     const tableBody = this.shadowRoot.querySelector('#operationsTable tbody'); 
     tableBody.innerHTML = ''; 
  
@@ -131,33 +153,8 @@ class OperationsTable extends HTMLElement {
       row.classList.add(operation.operationType); 
     }); 
  
-    sortOperations(); 
     checkOverlap(); 
     updateFalta(); 
-  } 
- 
-  setupEventListeners() { 
-    this.shadowRoot.addEventListener('click', (event) => { 
-      if (event.target.classList.contains('copyOperation')) { 
-        const index = event.target.dataset.index; 
-        this.handleCopyOperation(index); 
-      } else if (event.target.classList.contains('deleteOperation')) { 
-        const index = event.target.dataset.index; 
-        this.handleDeleteOperation(index); 
-      } 
-    }); 
-  } 
- 
-  handleCopyOperation(index) { 
-    copyOperation(index); 
-    this.dispatchEvent(new CustomEvent('operationCopied', { bubbles: true, composed: true })); 
-  } 
- 
-  handleDeleteOperation(index) { 
-    deleteOperation(index); 
-    this.loadOperations(); 
-    updateCurrentStockDisplay(); 
-    this.dispatchEvent(new CustomEvent('operationDeleted', { bubbles: true, composed: true })); 
   } 
  
   // Método público para atualizar a tabela 

@@ -25,9 +25,9 @@ export function getOperations() {
 // Adicionar uma nova operação 
 export function addOperation(operationData) { 
   const { tank, volume, flowRate, direction, operationType, startTime } = operationData; 
-   
+    
   if (!validateOperation(tank, volume, direction)) { 
-    throw new Error('Operação inválida: volume excede a capacidade do tanque'); 
+    return { success: false, error: 'Operação inválida: volume excede a capacidade do tanque' }; 
   } 
  
   const tankData = getTankData(tank); 
@@ -35,7 +35,7 @@ export function addOperation(operationData) {
   const endDateTime = new Date(startDateTime.getTime() + (volume / flowRate) * 60 * 60 * 1000); 
  
   const newOperation = { 
-    id: Date.now(), // Identificador único 
+    id: Date.now(), 
     tank, 
     produto: tankData.produto, 
     volume, 
@@ -51,8 +51,9 @@ export function addOperation(operationData) {
   saveOperations(); 
   updateStockDisplay(); 
  
-  return newOperation; 
+  return { success: true, operation: newOperation }; 
 } 
+ 
  
 // Remover uma operação 
 export function deleteOperation(operationId) { 

@@ -7,39 +7,21 @@ import { parseDateBR } from '../utils/dateUtils.js';
 /**  
  * Ordena as operações por data de início  
  */  
-export function sortOperations() {  
-  console.log('Iniciando ordenação das operações');  
-  const operations = getOperations();  
-
+export function sortOperations() { 
+  console.log('Iniciando ordenação das operações'); 
+  const operations = getOperations(); 
+ 
+  operations.sort((a, b) => { 
+    const aStartTime = new Date(a.startTime); 
+    const bStartTime = new Date(b.startTime); 
+    return aStartTime - bStartTime; 
+  }); 
+ 
+  saveOperations(operations); 
+  console.log('Ordenação concluída'); 
+  return operations; 
+} 
   
-  operations.sort((a, b) => {  
-    const aStartTime = new Date(a.startTime);  
-    const bStartTime = new Date(b.startTime);  
-    return aStartTime - bStartTime;  
-  });  
-  
-  saveOperations(operations);  
-  updateOperationsTable(operations);  
-  console.log('Ordenação concluída');  
-}  
-  
-/**  
- * Atualiza a tabela de operações com as operações ordenadas  
- * @param {Array} operations - Array de operações ordenadas  
- */  
-function updateOperationsTable(operations) {  
-  const operationsTableBody = document.querySelector('#operationsTable tbody');  
-  if (!operationsTableBody) {  
-    console.error('Tabela de operações não encontrada');  
-    return;  
-  }  
-  
-  operationsTableBody.innerHTML = '';  
-  operations.forEach(operation => {  
-    const row = createOperationRow(operation);  
-    operationsTableBody.appendChild(row);  
-  });  
-}  
   
 /**  
  * Cria uma linha da tabela para uma operação  

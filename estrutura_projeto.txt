@@ -30,27 +30,6 @@ body {
   padding: 20px; 
 } 
  
-/* Cabeçalho e rodapé */ 
-header, footer { 
-  background-color: var(--background-color); 
-  padding: 1em; 
-  width: 100%; 
-  box-sizing: border-box; 
-} 
- 
-header { 
-  display: flex; 
-  justify-content: center; 
-  align-items: center; 
-} 
- 
-.header-content { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  max-width: 1600px; 
-  width: 100%; 
-} 
  
 #logo { 
   max-height: 50px; 
@@ -84,19 +63,6 @@ nav a, .button {
  
 nav a:hover, .button:hover { 
   background-color: var(--secondary-color); 
-} 
- 
-footer { 
-  text-align: center; 
-} 
- 
-footer a { 
-  color: var(--primary-color); 
-  text-decoration: none; 
-} 
- 
-footer a:hover { 
-  text-decoration: underline; 
 } 
  
 /* Formulários e inputs */ 
@@ -167,21 +133,7 @@ tr.encavalado {
   padding: 20px; 
   border-radius: 4px; 
 } 
- 
-#dropZone { 
-  border: 2px dashed var(--border-color); 
-  border-radius: 4px; 
-  padding: 20px; 
-  text-align: center; 
-  margin-bottom: 30px; 
-  background-color: #f8f9fa; 
-  cursor: pointer; 
-} 
- 
-#dropZone:hover { 
-  background-color: var(--hover-color); 
-} 
- 
+  
 #transferButton { 
   display: block; 
   margin: 20px auto; 
@@ -236,7 +188,7 @@ tr.encavalado {
 } 
  
 @media (max-width: 768px) { 
-  .header-content, .title-nav { 
+  .title-nav { 
     flex-direction: column; 
     align-items: center; 
   } 
@@ -269,60 +221,30 @@ tr.encavalado {
   } 
 } 
 File: ./js/estoque/importacao.js
-// importacao.js 
+// importacao.js  
  
-import { saveInitialStock } from '../services/storage.js'; 
-import { validateTankData } from '../utils/validation.js'; 
-import { updateVisualizacao } from './visualizacao.js'; 
+import { saveInitialStock } from '../services/storage.js';  
+import { validateTankData } from '../utils/validation.js';  
+import { updateVisualizacao } from './visualizacao.js';  
  
-// Variável global para armazenar os dados do estoque 
-let globalStockData = []; 
+// Variável global para armazenar os dados do estoque  
+let globalStockData = [];  
  
-/** 
- * Configura os eventos de importação para o drag and drop e seleção de arquivo 
- */ 
-export function setupImportacao() { 
-  const fileInput = document.getElementById('fileInput'); 
-  const dropZone = document.getElementById('dropZone'); 
+/**  
+ * Configura os eventos de importação para o drag and drop e seleção de arquivo  
+ */  
+export function setupImportacao() {  
+  const dropZone = document.querySelector('drop-zone');  
+  if (!dropZone) { 
+    console.error('Elemento <drop-zone> não encontrado'); 
+    return; 
+  } 
  
-  // Adiciona classe visual quando o arquivo é arrastado sobre a zona de drop 
-  dropZone.addEventListener('dragover', (e) => { 
-    e.preventDefault(); 
-    dropZone.classList.add('dragover'); 
-  }); 
- 
-  // Remove a classe visual quando o arquivo sai da zona de drop 
-  dropZone.addEventListener('dragleave', () => { 
-    dropZone.classList.remove('dragover'); 
-  }); 
- 
-  // Processa o arquivo quando é solto na zona de drop 
-  dropZone.addEventListener('drop', (e) => { 
-    e.preventDefault(); 
-    dropZone.classList.remove('dragover'); 
-    if (e.dataTransfer.files.length) { 
-      handleFile(e.dataTransfer.files[0]); 
-    } 
-  }); 
- 
-  // Abre o diálogo de seleção de arquivo ao clicar na zona de drop 
-  dropZone.addEventListener('click', () => { 
-    fileInput.click(); 
-  }); 
- 
-  // Processa o arquivo quando é selecionado via input 
-  fileInput.addEventListener('change', (e) => { 
-    if (e.target.files.length) { 
-      handleFile(e.target.files[0]); 
-    } 
-  }); 
-} 
- 
-/** 
- * Processa o arquivo Excel selecionado 
- * @param {File} file - O arquivo Excel a ser processado 
- */ 
-function handleFile(file) { 
+  // Adiciona o listener para o evento personalizado 'fileSelected' 
+  dropZone.addEventListener('fileSelected', handleFile); 
+}  
+
+export function handleFile(file) { 
   const reader = new FileReader(); 
   reader.onload = function(e) { 
     try { 
@@ -339,51 +261,52 @@ function handleFile(file) {
   reader.readAsArrayBuffer(file); 
 } 
  
-/** 
- * Processa os dados do Excel e armazena no globalStockData 
- * @param {Object} worksheet - A planilha do Excel a ser processada 
- */ 
-function processExcelData(worksheet) { 
-  globalStockData = []; // Limpa os dados anteriores 
-  for (let i = 11; i <= 80; i++) { 
-    const produto = getCellValue(worksheet, `D${i}`); 
-    const tanque = getCellValue(worksheet, `E${i}`); 
-    const disponivelEnvio = parseFloat(getCellValue(worksheet, `V${i}`)); 
-    const espacoRecebimento = parseFloat(getCellValue(worksheet, `Y${i}`)); 
  
-    // Adiciona apenas linhas com dados válidos 
-    if (tanque && tanque !== 'TOTAL' && !isNaN(disponivelEnvio) && !isNaN(espacoRecebimento)) { 
-      const tankData = { produto, tanque, disponivelEnvio, espacoRecebimento }; 
-      const validation = validateTankData(tankData); 
-      if (validation.isValid) { 
-        globalStockData.push(tankData); 
-      } else { 
-        console.warn(`Dados inválidos para o tanque ${tanque}:`, validation.errors); 
-      } 
-    } 
-  } 
-  updateVisualizacao(globalStockData); 
-  saveInitialStock(globalStockData); 
-  console.log('Dados importados:', globalStockData); 
-} 
+/**  
+ * Processa os dados do Excel e armazena no globalStockData  
+ * @param {Object} worksheet - A planilha do Excel a ser processada  
+ */  
+function processExcelData(worksheet) {  
+  globalStockData = []; // Limpa os dados anteriores  
+  for (let i = 11; i <= 80; i++) {  
+    const produto = getCellValue(worksheet, `D${i}`);  
+    const tanque = getCellValue(worksheet, `E${i}`);  
+    const disponivelEnvio = parseFloat(getCellValue(worksheet, `V${i}`));  
+    const espacoRecebimento = parseFloat(getCellValue(worksheet, `Y${i}`));  
  
-/** 
- * Obtém o valor de uma célula específica da planilha 
- * @param {Object} worksheet - A planilha do Excel 
- * @param {string} cellAddress - O endereço da célula (ex: 'A1') 
- * @returns {string} O valor da célula ou uma string vazia se não existir 
- */ 
-function getCellValue(worksheet, cellAddress) { 
-  const cell = worksheet[cellAddress]; 
-  return cell ? cell.v : ''; 
-} 
+    // Adiciona apenas linhas com dados válidos  
+    if (tanque && tanque !== 'TOTAL' && !isNaN(disponivelEnvio) && !isNaN(espacoRecebimento)) {  
+      const tankData = { produto, tanque, disponivelEnvio, espacoRecebimento };  
+      const validation = validateTankData(tankData);  
+      if (validation.isValid) {  
+        globalStockData.push(tankData);  
+      } else {  
+        console.warn(`Dados inválidos para o tanque ${tanque}:`, validation.errors);  
+      }  
+    }  
+  }  
+  updateVisualizacao(globalStockData);  
+  saveInitialStock(globalStockData);  
+  console.log('Dados importados:', globalStockData);  
+}  
  
-export { globalStockData }; 
+/**  
+ * Obtém o valor de uma célula específica da planilha  
+ * @param {Object} worksheet - A planilha do Excel  
+ * @param {string} cellAddress - O endereço da célula (ex: 'A1')  
+ * @returns {string} O valor da célula ou uma string vazia se não existir  
+ */  
+function getCellValue(worksheet, cellAddress) {  
+  const cell = worksheet[cellAddress];  
+  return cell ? cell.v : '';  
+}  
+ 
+export { globalStockData };  
 File: ./js/estoque/transferencia.js
 // transferencia.js 
  
 import { getStockData } from '../state/stockData.js'; 
-import { saveToLocalStorage } from '../services/storage.js'; 
+import { saveToLocalStorage, getFromLocalStorage } from '../services/storage.js'; 
  
 /** 
  * Configura o evento de clique para o botão de transferência 
@@ -399,33 +322,27 @@ export function setupTransferencia() {
 function transferirDadosSelecionados() { 
   const checkboxes = document.querySelectorAll('#stockTable input[type="checkbox"]:checked'); 
   const dadosSelecionados = Array.from(checkboxes).map(checkbox => { 
-    const row = checkbox.closest('tr'); 
-    return { 
-      produto: row.cells[1].textContent, 
-      tanque: row.cells[2].textContent, 
-      disponivelEnvio: parseFloat(row.cells[3].textContent), 
-      espacoRecebimento: parseFloat(row.cells[4].textContent) 
-    }; 
+      const row = checkbox.closest('tr'); 
+      return { 
+          produto: row.cells[1].textContent, 
+          tanque: row.cells[2].textContent, 
+          disponivelEnvio: parseFloat(row.cells[3].textContent), 
+          espacoRecebimento: parseFloat(row.cells[4].textContent), 
+          selected: true 
+      }; 
   }); 
- 
+
   if (dadosSelecionados.length === 0) { 
-    alert('Por favor, selecione pelo menos um item para transferir.'); 
-    return; 
+      alert('Por favor, selecione pelo menos um item para transferir.'); 
+      return; 
   } 
- 
+
   saveToLocalStorage('stockData', dadosSelecionados); 
-   
-  // Atualiza os dados do estoque global 
-  const currentStockData = getStockData(); 
-  const updatedStockData = currentStockData.map(item => { 
-    const selectedItem = dadosSelecionados.find(selected => selected.tanque === item.tanque); 
-    return selectedItem || item; 
-  }); 
-  saveToLocalStorage('stockData', updatedStockData); 
- 
+
   alert('Dados transferidos com sucesso!'); 
   window.location.href = '../index.html'; 
 } 
+
  
 /** 
  * Atualiza o estado de seleção dos checkboxes 
@@ -433,16 +350,34 @@ function transferirDadosSelecionados() {
 export function updateSelectionState() { 
   const checkboxes = document.querySelectorAll('#stockTable input[type="checkbox"]'); 
   const transferButton = document.getElementById('transferButton'); 
+  const stockData = getFromLocalStorage('stockData') || []; 
    
   checkboxes.forEach(checkbox => { 
-    checkbox.addEventListener('change', () => { 
+    const row = checkbox.closest('tr'); 
+    const tanque = row.cells[2].textContent; 
+    const item = stockData.find(i => i.tanque === tanque); 
+    if (item) { 
+      checkbox.checked = item.selected; 
+    } 
+     
+    checkbox.addEventListener('change', (event) => { 
       const anyChecked = Array.from(checkboxes).some(cb => cb.checked); 
       transferButton.disabled = !anyChecked; 
+ 
+      // Atualiza o estado de seleção no localStorage 
+      const updatedStockData = stockData.map(i => { 
+        if (i.tanque === tanque) { 
+          return { ...i, selected: event.target.checked }; 
+        } 
+        return i; 
+      }); 
+      saveToLocalStorage('stockData', updatedStockData); 
     }); 
   }); 
  
   // Inicializa o estado do botão 
-  transferButton.disabled = true; 
+  const anyChecked = Array.from(checkboxes).some(cb => cb.checked); 
+  transferButton.disabled = !anyChecked; 
 } 
  
 export default { 
@@ -590,14 +525,12 @@ export function addOperation() {
 } 
  
 function getFormData() { 
-  return { 
-    tank: document.getElementById('tank').value, 
-    volume: parseFloat(document.getElementById('volume').value), 
-    flowRate: parseFloat(document.getElementById('flowRate').value), 
-    direction: document.getElementById('direction').value, 
-    operationType: document.getElementById('operationType').value, 
-    startTime: new Date(document.getElementById('startTime').value) 
-  }; 
+  const operationForm = document.querySelector('operation-form'); 
+  if (!operationForm) { 
+    console.error('Componente operation-form não encontrado'); 
+    return null; 
+  } 
+  return operationForm.getFormData(); 
 } 
  
 function checkTankCapacity(tankData, formData) { 
@@ -615,7 +548,8 @@ function checkTankCapacity(tankData, formData) {
 } 
  
 function calculateEndTime(formData) { 
-  return new Date(formData.startTime.getTime() + (formData.volume / formData.flowRate) * 60 * 60 * 1000); 
+  const startTime = new Date(formData.startTime); 
+  return new Date(startTime.getTime() + (formData.volume / formData.flowRate) * 60 * 60 * 1000); 
 } 
  
 function updateUI(newOperation, tankData) { 
@@ -778,39 +712,21 @@ import { parseDateBR } from '../utils/dateUtils.js';
 /**  
  * Ordena as operações por data de início  
  */  
-export function sortOperations() {  
-  console.log('Iniciando ordenação das operações');  
-  const operations = getOperations();  
-
+export function sortOperations() { 
+  console.log('Iniciando ordenação das operações'); 
+  const operations = getOperations(); 
+ 
+  operations.sort((a, b) => { 
+    const aStartTime = new Date(a.startTime); 
+    const bStartTime = new Date(b.startTime); 
+    return aStartTime - bStartTime; 
+  }); 
+ 
+  saveOperations(operations); 
+  console.log('Ordenação concluída'); 
+  return operations; 
+} 
   
-  operations.sort((a, b) => {  
-    const aStartTime = new Date(a.startTime);  
-    const bStartTime = new Date(b.startTime);  
-    return aStartTime - bStartTime;  
-  });  
-  
-  saveOperations(operations);  
-  updateOperationsTable(operations);  
-  console.log('Ordenação concluída');  
-}  
-  
-/**  
- * Atualiza a tabela de operações com as operações ordenadas  
- * @param {Array} operations - Array de operações ordenadas  
- */  
-function updateOperationsTable(operations) {  
-  const operationsTableBody = document.querySelector('#operationsTable tbody');  
-  if (!operationsTableBody) {  
-    console.error('Tabela de operações não encontrada');  
-    return;  
-  }  
-  
-  operationsTableBody.innerHTML = '';  
-  operations.forEach(operation => {  
-    const row = createOperationRow(operation);  
-    operationsTableBody.appendChild(row);  
-  });  
-}  
   
 /**  
  * Cria uma linha da tabela para uma operação  
@@ -864,20 +780,27 @@ export default sortOperations;
 import { getOperations } from '../state/operations.js'; 
 import { formatNumber } from '../utils/numberUtils.js'; 
  
-/** 
- * Atualiza os valores de falta para navio e olapa na tabela de operações 
- * @param {number} totalNavio - Total programado para navio 
- * @param {number} totalOlapa - Total programado para olapa 
- */ 
-export function updateFalta(totalNavio, totalOlapa) { 
+export function updateFalta() { 
+  const totalNavio = parseFloat(document.getElementById('totalNavio').value) || 0; 
+  const totalOlapa = parseFloat(document.getElementById('totalOlapa').value) || 0; 
   const operations = getOperations(); 
-  const operationsTableBody = document.querySelector('#operationsTable tbody'); 
+  const operationsTable = document.querySelector('operations-table'); 
+ 
+  if (!operationsTable) { 
+    console.error('Componente operations-table não encontrado'); 
+    return; 
+  } 
  
   let faltaNavio = totalNavio; 
   let faltaOlapa = totalOlapa; 
  
   operations.forEach((operation, index) => { 
-    const row = operationsTableBody.rows[index]; 
+    const row = operationsTable.shadowRoot.querySelector(`#operationsTable tbody tr:nth-child(${index + 1})`); 
+    if (!row) { 
+      console.error(`Linha ${index + 1} não encontrada na tabela de operações`); 
+      return; 
+    } 
+ 
     row.classList.remove('navio', 'olapa'); 
      
     const volumeOperado = operation.volumeOperado; 
@@ -898,43 +821,39 @@ export function updateFalta(totalNavio, totalOlapa) {
   // Atualiza o total restante 
   updateTotalRestante(faltaNavio, faltaOlapa); 
 } 
+
  
-/** 
- * Atualiza o display do total restante 
- * @param {number} faltaNavio - Falta restante para navio 
- * @param {number} faltaOlapa - Falta restante para olapa 
- */ 
 function updateTotalRestante(faltaNavio, faltaOlapa) { 
-  const totalRestanteElement = document.getElementById('totalRestante'); 
-  if (totalRestanteElement) { 
-    totalRestanteElement.textContent = `Restante: Navio ${formatNumber(faltaNavio)} m³, Olapa ${formatNumber(faltaOlapa)} m³`; 
-  } 
+    const faltaElement = document.getElementById('faltaDisplay'); 
+    if (faltaElement) { 
+        faltaElement.textContent = `Falta para Navio: ${formatNumber(faltaNavio)} m³, Falta para Olapa: ${formatNumber(faltaOlapa)} m³`; 
+    } 
 } 
  
-/** 
- * Configura os listeners para os inputs de total programado 
- */ 
 export function setupFaltaListeners() { 
-  const totalNavioInput = document.getElementById('totalNavio'); 
-  const totalOlapaInput = document.getElementById('totalOlapa'); 
+    const totalNavioInput = document.getElementById('totalNavio'); 
+    const totalOlapaInput = document.getElementById('totalOlapa'); 
  
-  [totalNavioInput, totalOlapaInput].forEach(input => { 
-    input.addEventListener('change', () => { 
-      const totalNavio = parseFloat(totalNavioInput.value) || 0; 
-      const totalOlapa = parseFloat(totalOlapaInput.value) || 0; 
-      updateFalta(totalNavio, totalOlapa); 
-    }); 
-  }); 
+    if (totalNavioInput && totalOlapaInput) { 
+        [totalNavioInput, totalOlapaInput].forEach(input => { 
+            input.addEventListener('change', updateFalta); 
+        }); 
+    } else { 
+        console.error('Elementos de input para totais não encontrados'); 
+    } 
 } 
  
 export default { 
-  updateFalta, 
-  setupFaltaListeners 
+    updateFalta, 
+    setupFaltaListeners 
 }; 
 File: ./js/components/DropZone.js
 // DropZone.js
 
-import { processExcelData } from '../estoque/importacao.js';
+import { handleFile } from '../estoque/importacao.js'; 
+
+
+
 
 class DropZone extends HTMLElement {
   constructor() {
@@ -1017,34 +936,18 @@ class DropZone extends HTMLElement {
     }
   }
 
-  handleFile(file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {type: 'array'});
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        processExcelData(worksheet);
-        this.dispatchEvent(new CustomEvent('fileProcessed', {  
-          bubbles: true,  
-          composed: true, 
-          detail: { success: true } 
-        })); 
-      } catch (error) { 
-        console.error('Erro ao processar o arquivo:', error); 
-        this.dispatchEvent(new CustomEvent('fileProcessed', {  
-          bubbles: true,  
-          composed: true, 
-          detail: { success: false, error: error.message } 
-        })); 
-      } 
-    }; 
-    reader.readAsArrayBuffer(file); 
+  handleFile(file) { 
+    handleFile(file); 
+    this.dispatchEvent(new CustomEvent('fileProcessed', {   
+      bubbles: true,   
+      composed: true,  
+      detail: { success: true }  
+    }));  
   } 
+  
 } 
 
-customElements.define('dropZone', DropZone);
+customElements.define('drop-zone', DropZone);
 
 export default DropZone;File: ./js/components/Footer.js
 // footer.js 
@@ -1265,14 +1168,15 @@ class OperationForm extends HTMLElement {
     `; 
   } 
  
-  setupEventListeners() {
-    const addOperationButton = this.shadowRoot.getElementById('addOperationButton');
-    addOperationButton.addEventListener('click', this.handleAddOperation.bind(this));
+  setupEventListeners() { 
+    const addOperationButton = this.shadowRoot.getElementById('addOperationButton'); 
+    addOperationButton.addEventListener('click', this.handleAddOperation.bind(this)); 
+   
+    document.addEventListener('stockUpdated', () => { 
+      this.populateTankSelect(); 
+    }); 
+  } 
   
-    this.addEventListener('stockUpdated', () => {
-      this.populateTankSelect();
-    });
-  }
  
   handleAddOperation() { 
     const formData = this.getFormData(); 
@@ -1296,6 +1200,7 @@ class OperationForm extends HTMLElement {
       startTime: this.shadowRoot.getElementById('startTime').value 
     }; 
   } 
+  
  
   validateFormData(formData) { 
     if (!formData.tank || isNaN(formData.volume) || isNaN(formData.flowRate) || !formData.startTime) { 
@@ -1348,7 +1253,29 @@ class OperationsTable extends HTMLElement {
     this.loadOperations(); 
     this.setupEventListeners(); 
   } 
+   
+  setupEventListeners() { 
+    this.shadowRoot.addEventListener('click', (event) => { 
+      if (event.target.classList.contains('copyOperation')) { 
+        const index = event.target.dataset.index; 
+        this.handleCopyOperation(index); 
+      } else if (event.target.classList.contains('deleteOperation')) { 
+        const index = event.target.dataset.index; 
+        this.handleDeleteOperation(index); 
+      } 
+    }); 
+  } 
  
+  handleCopyOperation(index) { 
+    // Lógica para copiar a operação 
+    console.log('Copiar operação:', index); 
+  } 
+ 
+  handleDeleteOperation(index) { 
+    // Lógica para deletar a operação 
+    console.log('Deletar operação:', index); 
+  } 
+
   render() { 
     this.shadowRoot.innerHTML = ` 
       <style> 
@@ -1435,7 +1362,7 @@ class OperationsTable extends HTMLElement {
   } 
  
   loadOperations() { 
-    const operations = getOperations(); 
+    const operations = sortOperations(); 
     const tableBody = this.shadowRoot.querySelector('#operationsTable tbody'); 
     tableBody.innerHTML = ''; 
  
@@ -1462,33 +1389,8 @@ class OperationsTable extends HTMLElement {
       row.classList.add(operation.operationType); 
     }); 
  
-    sortOperations(); 
     checkOverlap(); 
     updateFalta(); 
-  } 
- 
-  setupEventListeners() { 
-    this.shadowRoot.addEventListener('click', (event) => { 
-      if (event.target.classList.contains('copyOperation')) { 
-        const index = event.target.dataset.index; 
-        this.handleCopyOperation(index); 
-      } else if (event.target.classList.contains('deleteOperation')) { 
-        const index = event.target.dataset.index; 
-        this.handleDeleteOperation(index); 
-      } 
-    }); 
-  } 
- 
-  handleCopyOperation(index) { 
-    copyOperation(index); 
-    this.dispatchEvent(new CustomEvent('operationCopied', { bubbles: true, composed: true })); 
-  } 
- 
-  handleDeleteOperation(index) { 
-    deleteOperation(index); 
-    this.loadOperations(); 
-    updateCurrentStockDisplay(); 
-    this.dispatchEvent(new CustomEvent('operationDeleted', { bubbles: true, composed: true })); 
   } 
  
   // Método público para atualizar a tabela 
@@ -1577,11 +1479,12 @@ class StockTable extends HTMLElement {
  
   loadData() { 
     const initialStockData = getInitialStockData(); 
-    const currentStockData = getInitialStockData(); 
- 
+    const currentStockData = getCurrentStockData(); 
+   
     this.updateStockTable('#initialStockDataTable', initialStockData); 
     this.updateStockTable('#currentStockDataTable', currentStockData); 
   } 
+   
  
   updateStockTable(tableSelector, stockData) { 
     const stockTableBody = this.shadowRoot.querySelector(`${tableSelector} tbody`); 
@@ -1599,9 +1502,14 @@ class StockTable extends HTMLElement {
   } 
  
   // Método público para atualizar os dados 
-  updateData() { 
-    this.loadData(); 
+  updateData(initialStockData = null, currentStockData = null) { 
+    const initialData = initialStockData || getInitialStockData(); 
+    const currentData = currentStockData || getCurrentStockData(); 
+    
+    this.updateStockTable('#initialStockDataTable', initialData); 
+    this.updateStockTable('#currentStockDataTable', currentData); 
   } 
+  
 } 
  
 customElements.define('stock-table', StockTable); 
@@ -1612,19 +1520,29 @@ File: ./js/main.js
  
 import { loadOperations, sortOperations, calculateFalta, checkOverlap } from './state/operations.js'; 
 import { getInitialStockData, getCurrentStockData, updateStockDisplay } from './state/stockData.js'; 
-import { setupFaltaListeners } from './planejador/updateFalta.js'; 
+import { setupFaltaListeners, updateFalta } from './planejador/updateFalta.js'; 
+import { getFromLocalStorage } from './services/storage.js'; 
  
 document.addEventListener('DOMContentLoaded', () => { 
     initializeComponents(); 
-    setupEventListeners(); 
     loadInitialData(); 
+    setupEventListeners(); 
 }); 
  
 function initializeComponents() { 
-     
     const app = document.getElementById('app'); 
     app.innerHTML = ` 
         <stock-table></stock-table> 
+        <div id="totals"> 
+            <h2>Programação Total</h2> 
+            <p>Insira os volumes totais programados. Use valores positivos para recebimento e negativos para envio.</p> 
+            <label for="totalNavio">Total Programado para Navio (m³):</label> 
+            <input type="number" id="totalNavio" value="0"> 
+            <label for="totalOlapa">Total Programado para Olapa (m³):</label> 
+            <input type="number" id="totalOlapa" value="0"> 
+            <button id="recalculateButton">Recalcular Quantidades</button> 
+        </div> 
+        <div id="faltaDisplay"></div> 
         <operation-form></operation-form> 
         <operations-table></operations-table> 
     `; 
@@ -1645,49 +1563,39 @@ function setupEventListeners() {
         stockTable.updateData(); 
         operationsTable.updateTable(); 
     }); 
+ 
+    document.getElementById('recalculateButton').addEventListener('click', updateFalta); 
 } 
  
 function loadInitialData() { 
     loadOperations(); 
-    const initialStock = getInitialStockData(); 
-    const currentStock = getCurrentStockData(); 
+    const stockData = getFromLocalStorage('stockData') || []; 
+    const selectedStockData = stockData.filter(item => item.selected); 
      
-    document.querySelector('stock-table').updateData(initialStock, currentStock); 
+    document.querySelector('stock-table').updateData(selectedStockData, selectedStockData); 
     document.querySelector('operations-table').updateTable(); 
  
     updateStockDisplay(); 
+    updateFalta(); 
 } 
  
 function handleOperationAdded() { 
-    sortOperations(); 
-    checkOverlap(); 
+    document.querySelector('operations-table').updateTable(); 
     updateFalta(); 
     updateStockDisplay(); 
+  } 
+   
+  function handleOperationDeleted() { 
     document.querySelector('operations-table').updateTable(); 
-} 
- 
-function handleOperationDeleted() { 
     updateFalta(); 
     updateStockDisplay(); 
+  } 
+   
+  function handleOperationCopied() { 
     document.querySelector('operations-table').updateTable(); 
-} 
- 
-function handleOperationCopied() { 
-    sortOperations(); 
-    checkOverlap(); 
     updateFalta(); 
     updateStockDisplay(); 
-    document.querySelector('operations-table').updateTable(); 
-} 
- 
-function updateFalta() { 
-    const totalNavio = parseFloat(document.getElementById('totalNavio').value) || 0; 
-    const totalOlapa = parseFloat(document.getElementById('totalOlapa').value) || 0; 
-    const { faltaNavio, faltaOlapa } = calculateFalta(totalNavio, totalOlapa); 
-     
-    // Atualizar a exibição da falta (você pode adicionar elementos HTML para mostrar isso) 
-    console.log(`Falta para Navio: ${faltaNavio}, Falta para Olapa: ${faltaOlapa}`); 
-} 
+  } 
  
 export { updateFalta }; 
 File: ./js/services/storage.js
@@ -1703,7 +1611,12 @@ const OPERATIONS_KEY = 'plannedOperations';
  */ 
 export function saveToLocalStorage(key, data) { 
   try { 
-    const serializedData = JSON.stringify(data); 
+    let dataToSave = data; 
+    if (key === 'stockData') { 
+      // Filtra apenas os itens selecionados 
+      dataToSave = data.filter(item => item.selected); 
+    } 
+    const serializedData = JSON.stringify(dataToSave); 
     localStorage.setItem(key, serializedData); 
   } catch (error) { 
     console.error('Erro ao salvar no localStorage:', error); 
@@ -1932,9 +1845,9 @@ export function getInitialStockData() {
   return data ? JSON.parse(data) : []; 
 } 
 
-export function getStockData() {
-  getCurrentStockData();
-}
+export function getStockData() { 
+  return getCurrentStockData(); 
+} 
  
 // Função para calcular o estoque final com base nas operações 
 export function getCurrentStockData() { 
@@ -2094,115 +2007,116 @@ export function formatNumber(number) {
 // validation.js 
  
 /** 
- * Valida se um valor é um número positivo 
+ * Valida se um valor é um número 
  * @param {number} value - O valor a ser validado 
- * @returns {boolean} Verdadeiro se for um número positivo, falso caso contrário 
+ * @returns {boolean} Verdadeiro se for um número, falso caso contrário 
  */ 
-export function isPositiveNumber(value) { 
-    return typeof value === 'number' && !isNaN(value) && value > 0; 
+export function isNumber(value) { 
+  return typeof value === 'number' && !isNaN(value); 
+} 
+ 
+/** 
+ * Valida se uma string não está vazia 
+ * @param {string} value - A string a ser validada 
+ * @returns {boolean} Verdadeiro se a string não estiver vazia, falso caso contrário 
+ */ 
+export function isNonEmptyString(value) { 
+  return typeof value === 'string' && value.trim().length > 0; 
+} 
+ 
+/** 
+ * Valida se um valor é uma data válida 
+ * @param {Date|string} value - O valor da data a ser validado 
+ * @returns {boolean} Verdadeiro se for uma data válida, falso caso contrário 
+ */ 
+export function isValidDate(value) { 
+  if (value instanceof Date) { 
+    return !isNaN(value.getTime()); 
   } 
-   
-  /** 
-   * Valida se uma string não está vazia 
-   * @param {string} value - A string a ser validada 
-   * @returns {boolean} Verdadeiro se a string não estiver vazia, falso caso contrário 
-   */ 
-  export function isNonEmptyString(value) { 
-    return typeof value === 'string' && value.trim().length > 0; 
+  if (typeof value === 'string') { 
+    const date = new Date(value); 
+    return !isNaN(date.getTime()); 
   } 
-   
-  /** 
-   * Valida se um valor é uma data válida 
-   * @param {Date|string} value - O valor da data a ser validado 
-   * @returns {boolean} Verdadeiro se for uma data válida, falso caso contrário 
-   */ 
-  export function isValidDate(value) { 
-    if (value instanceof Date) { 
-      return !isNaN(value.getTime()); 
-    } 
-    if (typeof value === 'string') { 
-      const date = new Date(value); 
-      return !isNaN(date.getTime()); 
-    } 
-    return false; 
+  return false; 
+} 
+ 
+/** 
+ * Valida os dados de uma operação 
+ * @param {Object} operation - Os dados da operação a serem validados 
+ * @returns {Object} Um objeto com um campo 'isValid' e um campo 'errors' contendo mensagens de erro 
+ */ 
+export function validateOperation(operation) { 
+  const errors = []; 
+ 
+  if (!isNonEmptyString(operation.tank)) { 
+    errors.push('Tanque inválido'); 
   } 
-   
-  /** 
-   * Valida os dados de uma operação 
-   * @param {Object} operation - Os dados da operação a serem validados 
-   * @returns {Object} Um objeto com um campo 'isValid' e um campo 'errors' contendo mensagens de erro 
-   */ 
-  export function validateOperation(operation) { 
-    const errors = []; 
-   
-    if (!isNonEmptyString(operation.tank)) { 
-      errors.push('Tanque inválido'); 
-    } 
-   
-    if (!isPositiveNumber(operation.volume)) { 
-      errors.push('Volume inválido'); 
-    } 
-   
-    if (!isPositiveNumber(operation.flowRate)) { 
-      errors.push('Vazão inválida'); 
-    } 
-   
-    if (!['receber', 'enviar'].includes(operation.direction)) { 
-      errors.push('Direção inválida'); 
-    } 
-   
-    if (!['navio', 'olapa'].includes(operation.operationType)) { 
-      errors.push('Tipo de operação inválido'); 
-    } 
-   
-    if (!isValidDate(operation.startTime)) { 
-      errors.push('Data de início inválida'); 
-    } 
-   
-    return { 
-      isValid: errors.length === 0, 
-      errors 
-    }; 
+ 
+  if (!isNumber(operation.volume)) { 
+    errors.push('Volume inválido'); 
   } 
-   
-  /** 
-   * Valida os dados de estoque de um tanque 
-   * @param {Object} tankData - Os dados do tanque a serem validados 
-   * @returns {Object} Um objeto com um campo 'isValid' e um campo 'errors' contendo mensagens de erro 
-   */ 
-  export function validateTankData(tankData) { 
-    const errors = []; 
-   
-    if (!isNonEmptyString(tankData.produto)) { 
-      errors.push('Produto inválido'); 
-    } 
-   
-    if (!isNonEmptyString(tankData.tanque)) { 
-      errors.push('Tanque inválido'); 
-    } 
-   
-    if (!isPositiveNumber(tankData.disponivelEnvio)) { 
-      errors.push('Volume disponível para envio inválido'); 
-    } 
-   
-    if (!isPositiveNumber(tankData.espacoRecebimento)) { 
-      errors.push('Espaço para recebimento inválido'); 
-    } 
-   
-    return { 
-      isValid: errors.length === 0, 
-      errors 
-    }; 
+ 
+  if (!isNumber(operation.flowRate) || operation.flowRate <= 0) { 
+    errors.push('Vazão inválida'); 
   } 
-   
-  export default { 
-    isPositiveNumber, 
-    isNonEmptyString, 
-    isValidDate, 
-    validateOperation, 
-    validateTankData 
+ 
+  if (!['receber', 'enviar'].includes(operation.direction)) { 
+    errors.push('Direção inválida'); 
+  } 
+ 
+  if (!['navio', 'olapa'].includes(operation.operationType)) { 
+    errors.push('Tipo de operação inválido'); 
+  } 
+ 
+  if (!isValidDate(operation.startTime)) { 
+    errors.push('Data de início inválida'); 
+  } 
+ 
+  return { 
+    isValid: errors.length === 0, 
+    errors 
   }; 
-  File: ./pages/estoque.html
+} 
+ 
+/** 
+ * Valida os dados de estoque de um tanque 
+ * @param {Object} tankData - Os dados do tanque a serem validados 
+ * @returns {Object} Um objeto com um campo 'isValid' e um campo 'errors' contendo mensagens de erro 
+ */ 
+export function validateTankData(tankData) { 
+  const errors = []; 
+ 
+  if (!isNonEmptyString(tankData.tanque)) { 
+    errors.push('Tanque inválido'); 
+  } 
+ 
+  // Produto pode ser uma string vazia para tanques vazios 
+  if (typeof tankData.produto !== 'string') { 
+    errors.push('Produto inválido'); 
+  } 
+ 
+  if (!isNumber(tankData.disponivelEnvio)) { 
+    errors.push('Volume disponível para envio inválido'); 
+  } 
+ 
+  if (!isNumber(tankData.espacoRecebimento)) { 
+    errors.push('Espaço para recebimento inválido'); 
+  } 
+ 
+  return { 
+    isValid: errors.length === 0, 
+    errors 
+  }; 
+} 
+ 
+export default { 
+  isNumber, 
+  isNonEmptyString, 
+  isValidDate, 
+  validateOperation, 
+  validateTankData 
+}; 
+File: ./pages/estoque.html
 <!DOCTYPE html> 
 <html lang="pt-BR"> 
 <head> 
@@ -2230,7 +2144,7 @@ export function isPositiveNumber(value) {
             </ol> 
         </div> 
  
-        <dropZone></dropZone> 
+        <drop-zone></drop-zone> 
  
         <div id="stockVisualization"> 
             <h2>Visualização de Estoque</h2> 
@@ -2253,34 +2167,34 @@ export function isPositiveNumber(value) {
  
     <app-footer></app-footer> 
  
-    <script type="module">
-        import { setupImportacao } from '../js/estoque/importacao.js';
-        import { setupTransferencia, updateSelectionState } from '../js/estoque/transferencia.js';
-        import { initVisualizacao } from '../js/estoque/visualizacao.js';
-      
-
-
-        document.addEventListener('DOMContentLoaded', () => {
-          setupImportacao();
-          setupTransferencia();
-          initVisualizacao();
-          updateSelectionState();
-      
-          const dropZone = document.querySelector('dropZone');
-          if (dropZone) {
-            dropZone.addEventListener('fileProcessed', (event) => {
-              if (event.detail.success) {
-                initVisualizacao();
-                updateSelectionState();
-              } else {
-                alert('Erro ao processar o arquivo: ' + event.detail.error);
-              }
-            });
-          } else {
-            console.error('Elemento <drop-zone> não encontrado no DOM.');
-          }
-        });
-      </script>
+    <script type="module"> 
+      import { setupImportacao } from '../js/estoque/importacao.js'; 
+      import { setupTransferencia, updateSelectionState } from '../js/estoque/transferencia.js'; 
+      import { initVisualizacao } from '../js/estoque/visualizacao.js'; 
+     
+      document.addEventListener('DOMContentLoaded', () => { 
+        setupImportacao(); 
+        setupTransferencia(); // Movido para dentro do evento DOMContentLoaded 
+        initVisualizacao(); 
+        updateSelectionState(); 
+     
+        const dropZone = document.querySelector('drop-zone'); 
+        if (dropZone) { 
+          dropZone.addEventListener('fileProcessed', (event) => { 
+            if (event.detail.success) { 
+              initVisualizacao(); 
+              updateSelectionState(); 
+            } else { 
+              alert('Erro ao processar o arquivo: ' + event.detail.error); 
+            } 
+          }); 
+        } else { 
+          console.error('Elemento <drop-zone> não encontrado no DOM.'); 
+        } 
+      }); 
+    </script> 
+    
+  
 </body> 
 </html> 
 File: ./index.html

@@ -74,11 +74,12 @@ class StockTable extends HTMLElement {
  
   loadData() { 
     const initialStockData = getInitialStockData(); 
-    const currentStockData = getInitialStockData(); 
- 
+    const currentStockData = getCurrentStockData(); 
+   
     this.updateStockTable('#initialStockDataTable', initialStockData); 
     this.updateStockTable('#currentStockDataTable', currentStockData); 
   } 
+   
  
   updateStockTable(tableSelector, stockData) { 
     const stockTableBody = this.shadowRoot.querySelector(`${tableSelector} tbody`); 
@@ -96,9 +97,14 @@ class StockTable extends HTMLElement {
   } 
  
   // Método público para atualizar os dados 
-  updateData() { 
-    this.loadData(); 
+  updateData(initialStockData = null, currentStockData = null) { 
+    const initialData = initialStockData || getInitialStockData(); 
+    const currentData = currentStockData || getCurrentStockData(); 
+    
+    this.updateStockTable('#initialStockDataTable', initialData); 
+    this.updateStockTable('#currentStockDataTable', currentData); 
   } 
+  
 } 
  
 customElements.define('stock-table', StockTable); 

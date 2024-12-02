@@ -1,7 +1,7 @@
 // transferencia.js 
  
 import { getStockData } from '../state/stockData.js'; 
-import { saveToLocalStorage } from '../services/storage.js'; 
+import { saveToLocalStorage, getFromLocalStorage } from '../services/storage.js'; 
  
 /** 
  * Configura o evento de clique para o botão de transferência 
@@ -17,33 +17,27 @@ export function setupTransferencia() {
 function transferirDadosSelecionados() { 
   const checkboxes = document.querySelectorAll('#stockTable input[type="checkbox"]:checked'); 
   const dadosSelecionados = Array.from(checkboxes).map(checkbox => { 
-    const row = checkbox.closest('tr'); 
-    return { 
-      produto: row.cells[1].textContent, 
-      tanque: row.cells[2].textContent, 
-      disponivelEnvio: parseFloat(row.cells[3].textContent), 
-      espacoRecebimento: parseFloat(row.cells[4].textContent) 
-    }; 
+      const row = checkbox.closest('tr'); 
+      return { 
+          produto: row.cells[1].textContent, 
+          tanque: row.cells[2].textContent, 
+          disponivelEnvio: parseFloat(row.cells[3].textContent), 
+          espacoRecebimento: parseFloat(row.cells[4].textContent), 
+          selected: true 
+      }; 
   }); 
- 
+
   if (dadosSelecionados.length === 0) { 
-    alert('Por favor, selecione pelo menos um item para transferir.'); 
-    return; 
+      alert('Por favor, selecione pelo menos um item para transferir.'); 
+      return; 
   } 
- 
+
   saveToLocalStorage('stockData', dadosSelecionados); 
-   
-  // Atualiza os dados do estoque global 
-  const currentStockData = getStockData(); 
-  const updatedStockData = currentStockData.map(item => { 
-    const selectedItem = dadosSelecionados.find(selected => selected.tanque === item.tanque); 
-    return selectedItem || item; 
-  }); 
-  saveToLocalStorage('stockData', updatedStockData); 
- 
+
   alert('Dados transferidos com sucesso!'); 
   window.location.href = '../index.html'; 
 } 
+
  
 /** 
  * Atualiza o estado de seleção dos checkboxes 
@@ -51,16 +45,34 @@ function transferirDadosSelecionados() {
 export function updateSelectionState() { 
   const checkboxes = document.querySelectorAll('#stockTable input[type="checkbox"]'); 
   const transferButton = document.getElementById('transferButton'); 
+  const stockData = getFromLocalStorage('stockData') || []; 
    
   checkboxes.forEach(checkbox => { 
-    checkbox.addEventListener('change', () => { 
+    const row = checkbox.closest('tr'); 
+    const tanque = row.cells[2].textContent; 
+    const item = stockData.find(i => i.tanque === tanque); 
+    if (item) { 
+      checkbox.checked = item.selected; 
+    } 
+     
+    checkbox.addEventListener('change', (event) => { 
       const anyChecked = Array.from(checkboxes).some(cb => cb.checked); 
       transferButton.disabled = !anyChecked; 
+ 
+      // Atualiza o estado de seleção no localStorage 
+      const updatedStockData = stockData.map(i => { 
+        if (i.tanque === tanque) { 
+          return { ...i, selected: event.target.checked }; 
+        } 
+        return i; 
+      }); 
+      saveToLocalStorage('stockData', updatedStockData); 
     }); 
   }); 
  
   // Inicializa o estado do botão 
-  transferButton.disabled = true; 
+  const anyChecked = Array.from(checkboxes).some(cb => cb.checked); 
+  transferButton.disabled = !anyChecked; 
 } 
  
 export default { 

@@ -2,19 +2,29 @@
  
 import { loadOperations, sortOperations, calculateFalta, checkOverlap } from './state/operations.js'; 
 import { getInitialStockData, getCurrentStockData, updateStockDisplay } from './state/stockData.js'; 
-import { setupFaltaListeners } from './planejador/updateFalta.js'; 
+import { setupFaltaListeners, updateFalta } from './planejador/updateFalta.js'; 
+import { getFromLocalStorage } from './services/storage.js'; 
  
 document.addEventListener('DOMContentLoaded', () => { 
     initializeComponents(); 
-    setupEventListeners(); 
     loadInitialData(); 
+    setupEventListeners(); 
 }); 
  
 function initializeComponents() { 
-     
     const app = document.getElementById('app'); 
     app.innerHTML = ` 
         <stock-table></stock-table> 
+        <div id="totals"> 
+            <h2>Programação Total</h2> 
+            <p>Insira os volumes totais programados. Use valores positivos para recebimento e negativos para envio.</p> 
+            <label for="totalNavio">Total Programado para Navio (m³):</label> 
+            <input type="number" id="totalNavio" value="0"> 
+            <label for="totalOlapa">Total Programado para Olapa (m³):</label> 
+            <input type="number" id="totalOlapa" value="0"> 
+            <button id="recalculateButton">Recalcular Quantidades</button> 
+        </div> 
+        <div id="faltaDisplay"></div> 
         <operation-form></operation-form> 
         <operations-table></operations-table> 
     `; 
@@ -35,48 +45,38 @@ function setupEventListeners() {
         stockTable.updateData(); 
         operationsTable.updateTable(); 
     }); 
+ 
+    document.getElementById('recalculateButton').addEventListener('click', updateFalta); 
 } 
  
 function loadInitialData() { 
     loadOperations(); 
-    const initialStock = getInitialStockData(); 
-    const currentStock = getCurrentStockData(); 
+    const stockData = getFromLocalStorage('stockData') || []; 
+    const selectedStockData = stockData.filter(item => item.selected); 
      
-    document.querySelector('stock-table').updateData(initialStock, currentStock); 
+    document.querySelector('stock-table').updateData(selectedStockData, selectedStockData); 
     document.querySelector('operations-table').updateTable(); 
  
     updateStockDisplay(); 
+    updateFalta(); 
 } 
  
 function handleOperationAdded() { 
-    sortOperations(); 
-    checkOverlap(); 
+    document.querySelector('operations-table').updateTable(); 
     updateFalta(); 
     updateStockDisplay(); 
+  } 
+   
+  function handleOperationDeleted() { 
     document.querySelector('operations-table').updateTable(); 
-} 
- 
-function handleOperationDeleted() { 
     updateFalta(); 
     updateStockDisplay(); 
+  } 
+   
+  function handleOperationCopied() { 
     document.querySelector('operations-table').updateTable(); 
-} 
- 
-function handleOperationCopied() { 
-    sortOperations(); 
-    checkOverlap(); 
     updateFalta(); 
     updateStockDisplay(); 
-    document.querySelector('operations-table').updateTable(); 
-} 
- 
-function updateFalta() { 
-    const totalNavio = parseFloat(document.getElementById('totalNavio').value) || 0; 
-    const totalOlapa = parseFloat(document.getElementById('totalOlapa').value) || 0; 
-    const { faltaNavio, faltaOlapa } = calculateFalta(totalNavio, totalOlapa); 
-     
-    // Atualizar a exibição da falta (você pode adicionar elementos HTML para mostrar isso) 
-    console.log(`Falta para Navio: ${faltaNavio}, Falta para Olapa: ${faltaOlapa}`); 
-} 
+  } 
  
 export { updateFalta }; 

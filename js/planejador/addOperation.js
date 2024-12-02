@@ -11,19 +11,15 @@ import { checkOverlap } from './checkOverlap.js';
 export function addOperation() { 
   console.log('Função addOperation iniciada'); 
  
-  // 1. Coleta os dados do formulário 
   const formData = getFormData(); 
- 
   console.log('Dados coletados:', formData); 
  
-  // 2. Valida os dados 
   const validationResult = validateOperation(formData); 
   if (!validationResult.isValid) { 
     alert(validationResult.errors.join('\n')); 
     return; 
   } 
  
-  // 3. Verifica a capacidade do tanque 
   const stockData = getStockData(); 
   console.log('Dados do estoque recuperados:', stockData); 
  
@@ -33,28 +29,14 @@ export function addOperation() {
     return; 
   } 
  
-  if (!checkTankCapacity(tankData, formData)) { 
+  const result = addOperationToState(formData); 
+  if (!result.success) { 
+    alert(result.error); 
     return; 
   } 
  
-  // 4. Calcula o horário de término 
-  const endTime = calculateEndTime(formData); 
- 
-  // 5. Adiciona a operação ao estado 
-  const newOperation = addOperationToState({ 
-    ...formData, 
-    produto: tankData.produto, 
-    endTime, 
-    volumeOperado: formData.direction === 'receber' ? formData.volume : -formData.volume 
-  }); 
- 
-  // 6. Atualiza a UI 
-  updateUI(newOperation, tankData); 
- 
-  // 7. Atualiza os dados de estoque 
+  updateUI(result.operation, tankData); 
   updateStockData(tankData, formData); 
- 
-  // 8. Atualiza cálculos e exibições 
   updateFalta(); 
   sortOperations(); 
   checkOverlap(); 
@@ -62,15 +44,14 @@ export function addOperation() {
   console.log('Função addOperation concluída'); 
 } 
  
+ 
 function getFormData() { 
-  return { 
-    tank: document.getElementById('tank').value, 
-    volume: parseFloat(document.getElementById('volume').value), 
-    flowRate: parseFloat(document.getElementById('flowRate').value), 
-    direction: document.getElementById('direction').value, 
-    operationType: document.getElementById('operationType').value, 
-    startTime: new Date(document.getElementById('startTime').value) 
-  }; 
+  const operationForm = document.querySelector('operation-form'); 
+  if (!operationForm) { 
+    console.error('Componente operation-form não encontrado'); 
+    return null; 
+  } 
+  return operationForm.getFormData(); 
 } 
  
 function checkTankCapacity(tankData, formData) { 
@@ -88,7 +69,8 @@ function checkTankCapacity(tankData, formData) {
 } 
  
 function calculateEndTime(formData) { 
-  return new Date(formData.startTime.getTime() + (formData.volume / formData.flowRate) * 60 * 60 * 1000); 
+  const startTime = new Date(formData.startTime); 
+  return new Date(startTime.getTime() + (formData.volume / formData.flowRate) * 60 * 60 * 1000); 
 } 
  
 function updateUI(newOperation, tankData) { 

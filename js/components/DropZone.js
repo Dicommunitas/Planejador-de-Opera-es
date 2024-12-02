@@ -1,6 +1,9 @@
 // DropZone.js
 
-import { processExcelData } from '../estoque/importacao.js';
+import { handleFile } from '../estoque/importacao.js'; 
+
+
+
 
 class DropZone extends HTMLElement {
   constructor() {
@@ -83,31 +86,15 @@ class DropZone extends HTMLElement {
     }
   }
 
-  handleFile(file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {type: 'array'});
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        processExcelData(worksheet);
-        this.dispatchEvent(new CustomEvent('fileProcessed', {  
-          bubbles: true,  
-          composed: true, 
-          detail: { success: true } 
-        })); 
-      } catch (error) { 
-        console.error('Erro ao processar o arquivo:', error); 
-        this.dispatchEvent(new CustomEvent('fileProcessed', {  
-          bubbles: true,  
-          composed: true, 
-          detail: { success: false, error: error.message } 
-        })); 
-      } 
-    }; 
-    reader.readAsArrayBuffer(file); 
+  handleFile(file) { 
+    handleFile(file); 
+    this.dispatchEvent(new CustomEvent('fileProcessed', {   
+      bubbles: true,   
+      composed: true,  
+      detail: { success: true }  
+    }));  
   } 
+  
 } 
 
 customElements.define('drop-zone', DropZone);

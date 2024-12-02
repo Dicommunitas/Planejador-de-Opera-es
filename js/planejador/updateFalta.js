@@ -3,20 +3,27 @@
 import { getOperations } from '../state/operations.js'; 
 import { formatNumber } from '../utils/numberUtils.js'; 
  
-/** 
- * Atualiza os valores de falta para navio e olapa na tabela de operações 
- * @param {number} totalNavio - Total programado para navio 
- * @param {number} totalOlapa - Total programado para olapa 
- */ 
-export function updateFalta(totalNavio, totalOlapa) { 
+export function updateFalta() { 
+  const totalNavio = parseFloat(document.getElementById('totalNavio').value) || 0; 
+  const totalOlapa = parseFloat(document.getElementById('totalOlapa').value) || 0; 
   const operations = getOperations(); 
-  const operationsTableBody = document.querySelector('#operationsTable tbody'); 
+  const operationsTable = document.querySelector('operations-table'); 
+ 
+  if (!operationsTable) { 
+    console.error('Componente operations-table não encontrado'); 
+    return; 
+  } 
  
   let faltaNavio = totalNavio; 
   let faltaOlapa = totalOlapa; 
  
   operations.forEach((operation, index) => { 
-    const row = operationsTableBody.rows[index]; 
+    const row = operationsTable.shadowRoot.querySelector(`#operationsTable tbody tr:nth-child(${index + 1})`); 
+    if (!row) { 
+      console.error(`Linha ${index + 1} não encontrada na tabela de operações`); 
+      return; 
+    } 
+ 
     row.classList.remove('navio', 'olapa'); 
      
     const volumeOperado = operation.volumeOperado; 
@@ -37,36 +44,29 @@ export function updateFalta(totalNavio, totalOlapa) {
   // Atualiza o total restante 
   updateTotalRestante(faltaNavio, faltaOlapa); 
 } 
+
  
-/** 
- * Atualiza o display do total restante 
- * @param {number} faltaNavio - Falta restante para navio 
- * @param {number} faltaOlapa - Falta restante para olapa 
- */ 
 function updateTotalRestante(faltaNavio, faltaOlapa) { 
-  const totalRestanteElement = document.getElementById('totalRestante'); 
-  if (totalRestanteElement) { 
-    totalRestanteElement.textContent = `Restante: Navio ${formatNumber(faltaNavio)} m³, Olapa ${formatNumber(faltaOlapa)} m³`; 
-  } 
+    const faltaElement = document.getElementById('faltaDisplay'); 
+    if (faltaElement) { 
+        faltaElement.textContent = `Falta para Navio: ${formatNumber(faltaNavio)} m³, Falta para Olapa: ${formatNumber(faltaOlapa)} m³`; 
+    } 
 } 
  
-/** 
- * Configura os listeners para os inputs de total programado 
- */ 
 export function setupFaltaListeners() { 
-  const totalNavioInput = document.getElementById('totalNavio'); 
-  const totalOlapaInput = document.getElementById('totalOlapa'); 
+    const totalNavioInput = document.getElementById('totalNavio'); 
+    const totalOlapaInput = document.getElementById('totalOlapa'); 
  
-  [totalNavioInput, totalOlapaInput].forEach(input => { 
-    input.addEventListener('change', () => { 
-      const totalNavio = parseFloat(totalNavioInput.value) || 0; 
-      const totalOlapa = parseFloat(totalOlapaInput.value) || 0; 
-      updateFalta(totalNavio, totalOlapa); 
-    }); 
-  }); 
+    if (totalNavioInput && totalOlapaInput) { 
+        [totalNavioInput, totalOlapaInput].forEach(input => { 
+            input.addEventListener('change', updateFalta); 
+        }); 
+    } else { 
+        console.error('Elementos de input para totais não encontrados'); 
+    } 
 } 
  
 export default { 
-  updateFalta, 
-  setupFaltaListeners 
+    updateFalta, 
+    setupFaltaListeners 
 }; 
