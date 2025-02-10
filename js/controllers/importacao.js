@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
 // importacao.js  
  
 import { saveInitialStock } from '../services/storage.js';  

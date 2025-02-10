@@ -1,8 +1,14 @@
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
 // main.js 
  
-import { loadOperations, sortOperations, calculateFalta, checkOverlap } from './state/operations.js'; 
-import { getInitialStockData, getCurrentStockData, updateStockDisplay } from './state/stockData.js'; 
-import { setupFaltaListeners, updateFalta } from './planejador/updateFalta.js'; 
+import { loadOperations, sortOperations, calculateFalta, checkOverlap } from ../models/operations.js'; 
+import { getInitialStockData, getCurrentStockData, updateStockDisplay } from ../models/stockData.js'; 
+import { setupFaltaListeners, updateFalta } from ./updateFalta.js'; 
 import { getFromLocalStorage } from './services/storage.js'; 
  
 document.addEventListener('DOMContentLoaded', () => { 

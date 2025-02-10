@@ -1,6 +1,12 @@
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
 // DropZone.js
 
-import { handleFile } from '../estoque/importacao.js'; 
+import { handleFile } from './importacao.js'; 
 
 
 

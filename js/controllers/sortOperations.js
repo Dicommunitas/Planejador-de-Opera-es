@@ -1,7 +1,13 @@
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
 // sortOperations.js  
   
-import { saveOperations } from '../state/operations.js';
-import { getOperations } from '../state/operations.js';
+import { saveOperations } from '../models/operations.js';
+import { getOperations } from '../models/operations.js';
 import { parseDateBR } from '../utils/dateUtils.js';  
   
 /**  

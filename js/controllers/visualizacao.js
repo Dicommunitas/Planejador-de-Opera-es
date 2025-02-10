@@ -1,6 +1,12 @@
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
 // visualizacao.js 
  
-import { getStockData } from '../state/stockData.js'; 
+import { getStockData } from '../models/stockData.js'; 
  
 /** 
  * Atualiza a visualização da tabela de estoque 

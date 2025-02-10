@@ -1,11 +1,17 @@
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
 // OperationForm.js 
  
-import { addOperation } from '../planejador/addOperation.js'; 
-import { getStockData, saveStockData } from '../state/stockData.js'; 
-import { clearForm } from '../planejador/clearForm.js'; 
-import { updateFalta } from '../planejador/updateFalta.js'; 
-import { sortOperations } from '../planejador/sortOperations.js'; 
-import { checkOverlap } from '../planejador/checkOverlap.js'; 
+import { addOperation } from './addOperation.js'; 
+import { getStockData, saveStockData } from '../models/stockData.js'; 
+import { clearForm } from './clearForm.js'; 
+import { updateFalta } from './updateFalta.js'; 
+import { sortOperations } from './sortOperations.js'; 
+import { checkOverlap } from './checkOverlap.js'; 
  
 class OperationForm extends HTMLElement { 
   constructor() { 

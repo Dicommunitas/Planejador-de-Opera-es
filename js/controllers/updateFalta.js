@@ -1,6 +1,12 @@
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
 // updateFalta.js 
  
-import { getOperations } from '../state/operations.js'; 
+import { getOperations } from '../models/operations.js'; 
 import { formatNumber } from '../utils/numberUtils.js'; 
  
 export function updateFalta() { 

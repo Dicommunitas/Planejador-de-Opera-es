@@ -1,7 +1,13 @@
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
 // addOperation.js 
  
-import { getStockData, saveStockData } from '../state/stockData.js'; 
-import { addOperation as addOperationToState } from '../state/operations.js'; 
+import { getStockData, saveStockData } from '../models/stockData.js'; 
+import { addOperation as addOperationToState } from '../models/operations.js'; 
 import { validateOperation } from '../utils/validation.js'; 
 import { formatDateBR } from '../utils/dateUtils.js'; 
 import { updateFalta } from './updateFalta.js'; 

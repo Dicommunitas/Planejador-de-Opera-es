@@ -1,7 +1,13 @@
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
 // StockTable.js 
  
 
-import { getInitialStockData, getCurrentStockData } from '../state/stockData.js';
+import { getInitialStockData, getCurrentStockData } from '../models/stockData.js';
  
 class StockTable extends HTMLElement { 
   constructor() { 

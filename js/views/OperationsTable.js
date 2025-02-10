@@ -1,10 +1,16 @@
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
 // OperationsTable.js 
  
-import { getOperations, deleteOperation, copyOperation } from '../state/operations.js'; 
-import { updateFalta } from '../planejador/updateFalta.js'; 
-import { sortOperations } from '../planejador/sortOperations.js'; 
-import { checkOverlap } from '../planejador/checkOverlap.js'; 
-import { updateCurrentStockDisplay } from '../state/stockData.js'; 
+import { getOperations, deleteOperation, copyOperation } from '../models/operations.js'; 
+import { updateFalta } from './updateFalta.js'; 
+import { sortOperations } from './sortOperations.js'; 
+import { checkOverlap } from './checkOverlap.js'; 
+import { updateCurrentStockDisplay } from '../models/stockData.js'; 
  
 class OperationsTable extends HTMLElement { 
   constructor() { 

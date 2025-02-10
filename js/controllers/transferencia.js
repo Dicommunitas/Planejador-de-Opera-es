@@ -1,6 +1,12 @@
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
 // transferencia.js 
  
-import { getStockData } from '../state/stockData.js'; 
+import { getStockData } from '../models/stockData.js'; 
 import { saveToLocalStorage, getFromLocalStorage } from '../services/storage.js'; 
  
 /** 

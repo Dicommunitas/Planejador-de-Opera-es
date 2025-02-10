@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
 // stockData.js 
  
 import { getOperations } from './operations.js'; 

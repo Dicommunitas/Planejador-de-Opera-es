@@ -6,9 +6,9 @@
     <title>Importação e Visualização de Estoque</title> 
     <link rel="stylesheet" href="../css/styles.css"> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> 
-    <script type="module" src="../js/components/Header.js"></script> 
-    <script type="module" src="../js/components/DropZone.js"></script> 
-    <script type="module" src="../js/components/Footer.js"></script> 
+    <script type="module" src="../js/views/Header.js"></script> 
+    <script type="module" src="../js/views/DropZone.js"></script> 
+    <script type="module" src="../js/views/Footer.js"></script> 
 </head> 
 <body> 
     <app-header></app-header> 
@@ -49,9 +49,9 @@
     <app-footer></app-footer> 
  
     <script type="module"> 
-      import { setupImportacao } from '../js/estoque/importacao.js'; 
-      import { setupTransferencia, updateSelectionState } from '../js/estoque/transferencia.js'; 
-      import { initVisualizacao } from '../js/estoque/visualizacao.js'; 
+      import { setupImportacao } from '../js/controllers/importacao.js'; 
+      import { setupTransferencia, updateSelectionState } from '../js/controllers/transferencia.js'; 
+      import { initVisualizacao } from '../js/controllers/visualizacao.js'; 
      
       document.addEventListener('DOMContentLoaded', () => { 
         setupImportacao(); 
