@@ -6,8 +6,8 @@
 
 // importacao.js  
  
-import { saveInitialStock } from '../services/storage.js';  
-import { validateTankData } from '../utils/validation.js';  
+import { saveInitialStock } from '../services/storage.js.js';  
+import { validateTankData } from '../utils/validation.js.js';  
 import { updateVisualizacao } from './visualizacao.js';  
  
 // Variável global para armazenar os dados do estoque  
@@ -63,6 +63,16 @@ function processExcelData(worksheet) {
       const validation = validateTankData(tankData);  
       if (validation.isValid) {  
         globalStockData.push(tankData);  
+            this.dispatchEvent(new CustomEvent("fileProcessed", {
+                bubbles: true,
+                composed: true,
+                detail: { success: true, data: globalStockData }
+            }));
+            detail: {
+                success: true,
+                data: globalStockData
+            }
+        }));
       } else {  
         console.warn(`Dados inválidos para o tanque ${tanque}:`, validation.errors);  
       }  

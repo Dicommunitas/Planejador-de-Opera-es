@@ -8,7 +8,7 @@
  
 import { getStockData, saveStockData } from '../models/stockData.js'; 
 import { addOperation as addOperationToState } from '../models/operations.js'; 
-import { validateOperation } from '../utils/validation.js'; 
+import { validateOperation } from '../utils/validation.js.js'; 
 import { formatDateBR } from '../utils/dateUtils.js'; 
 import { updateFalta } from './updateFalta.js'; 
 import { sortOperations } from './sortOperations.js'; 

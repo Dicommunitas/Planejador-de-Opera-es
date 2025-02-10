@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Iniciando reestruturação do projeto..."
+echo "Iniciando reestruturação completa do projeto..."
 
 # Criar estrutura de diretórios necessária
 mkdir -p js/{models,controllers,views,services,utils} \
@@ -8,71 +8,100 @@ mkdir -p js/{models,controllers,views,services,utils} \
          images \
          pages
 
-# Mover arquivos para a estrutura correta
-mv js/services/*.js js/services/ 2>/dev/null
-mv js/utils/*.js js/utils/ 2>/dev/null
-mv js/controllers/*.js js/controllers/ 2>/dev/null
-
-# Mover componentes de visualização
-mv js/views/*.js js/views/ 2>/dev/null
-
-# Mover modelos e controladores
-mv js/state/*.js js/models/ 2>/dev/null
-mv js/planejador/*.js js/controllers/ 2>/dev/null
-mv js/estoque/*.js js/controllers/ 2>/dev/null
-
-# Atualizar imports nos arquivos JavaScript
-update_js_imports() {
+# Corrigir imports e estrutura do DropZone
+fix_dropzone() {
+    # Corrigir CSS do DropZone
     sed -i '
-        s#../state/stockData#../models/stockData#g
-        s#../state/operations#../models/operations#g
-        s#./state/operations#./models/operations#g
-        s#../planejador/#./#g
-        s#../estoque/#./#g
-        s#from '\''\./state#from '\''../models#g
-        s#from "\./state#from "../models#g
-        s#from '\''\./planejador#from '\''./#g
-        s#from "\./planejador#from "./#g
-        s#from '\''\./estoque#from '\''./#g
-        s#from "\./estoque#from "./#g
-        s#from '\''\./views/components#from '\''./#g
-        s#from "\./views/components#from "./#g
-    ' "$1"
+        /#dropZone {/ {
+            a\
+            min-height: 150px;\
+            display: flex;\
+            align-items: center;\
+            justify-content: center;\
+            flex-direction: column;\
+            padding: 2rem;\
+            transition: all 0.3s ease;
+        }
+        /#dropZone::before/ {
+            i\
+        #dropZone::before {\
+            content: "⬆️ Solte seu arquivo Excel aqui";\
+            font-size: 1.2em;\
+            margin-bottom: 10px;\
+        }
+        }
+        /#dropZone.dragover/ {
+            c\
+        #dropZone.dragover {\
+            background-color: #e6f7ff;\
+            border-color: #007bff;\
+            box-shadow: 0 0 15px rgba(0,123,255,0.2);\
+        }
+        }
+    ' js/views/DropZone.js
+
+    # Corrigir evento de processamento
+    sed -i '/document.dispatchEvent(new CustomEvent(/ {
+        c\
+            this.dispatchEvent(new CustomEvent("fileProcessed", {\
+                bubbles: true,\
+                composed: true,\
+                detail: { success: true, data: globalStockData }\
+            }));
+    }' js/controllers/importacao.js
 }
 
-export -f update_js_imports
-find js -type f -name "*.js" -exec bash -c 'update_js_imports "$0"' {} \;
-
-# Atualizar imports específicos em componentes
-sed -i 's#from "../estoque/importacao.js"#from "../controllers/importacao.js"#g' js/views/DropZone.js
-
-# Atualizar referências nos arquivos HTML
-update_html_imports() {
-    sed -i '
-        s#js/views/components/#js/views/#g
-        s#js/planejador/#js/controllers/#g
-        s#js/estoque/#js/controllers/#g
-        s#../js/estoque/#../js/controllers/#g
-    ' "$1"
+# Atualizar imports nos componentes
+update_imports() {
+    find js/ -name "*.js" -exec sed -i '
+        s#../services/storage#../services/storage.js#g;
+        s#../utils/validation#../utils/validation.js#g;
+        s#./importacao.js#../controllers/importacao.js#g;
+    ' {} \;
 }
 
-export -f update_html_imports
-find . -type f -name "*.html" -exec bash -c 'update_html_imports "$0"' {} \;
+# Corrigir estilos globais
+update_styles() {
+    echo "
+    /* DropZone Enhancements */
+    drop-zone {
+        margin: 2rem auto;
+        width: 80%;
+        max-width: 600px;
+    }
+
+    #dropZone {
+        position: relative;
+        border: 3px dashed #007bff;
+        border-radius: 10px;
+        background-color: #f8fcff;
+        color: #666;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    #dropZone:hover {
+        border-color: #0056b3;
+        background-color: #f0faff;
+    }
+
+    #fileInput {
+        display: none;
+    }" >> css/styles.css
+}
+
+# Executar correções
+fix_dropzone
+update_imports
+update_styles
 
 # Corrigir permissões
 chmod +x restructure.sh
 
-echo "Reestruturação concluída. Verificando problemas residuais..."
+echo "Reestruturação concluída! Principais alterações:"
+echo "1. CSS do DropZone totalmente reformulado"
+echo "2. Importações normalizadas"
+echo "3. Eventos de arquivo sincronizados"
+echo "4. Estilos globais atualizados"
 
-# Verificar imports problemáticos
-grep -ERn "from.*(state|planejador|estoque|components)" js/ \
-    | grep -v "models\|controllers\|views\|services\|utils"
-
-echo "Atualizando arquivo de estrutura do projeto..."
-find . -type f ! -name "gitpod.yml" ! -name "LICENSE" ! -name "README.md" \
-    ! -name "estrutura_projeto.txt" ! -path "*/images/*" ! -path "*/.git/*" \
-    -exec echo "File: {}" \; -exec cat {} \; > estrutura_projeto.txt
-
-echo "Estrutura atualizada em estrutura_projeto.txt"
-echo "Reestruturação concluída com sucesso!"
-echo "Por favor, revise os resultados e execute testes manuais se necessário."
+echo "Verifique o console do navegador para eventuais erros restantes e teste a funcionalidade de upload."

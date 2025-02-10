@@ -220,6 +220,1059 @@ tr.encavalado {
     font-size: 0.8em; 
   } 
 } 
+
+/* Estilos adicionais para drop-zone */
+drop-zone {
+    display: block !important;
+    margin: 20px 0;
+}
+
+#stockTable {
+    margin-top: 20px;
+    width: 100%;
+}
+
+#transferButton {
+    margin-top: 30px;
+    padding: 15px 30px;
+}
+File: ./index.html
+<!DOCTYPE html> 
+<html lang="pt-BR"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Planejador de Operações</title> 
+    <link rel="stylesheet" href="css/styles.css"> 
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon"> 
+    <script type="module" src="js/views/Header.js"></script> 
+    <script type="module" src="js/views/Footer.js"></script> 
+    <script type="module" src="js/views/StockTable.js"></script> 
+    <script type="module" src="js/views/OperationForm.js"></script> 
+    <script type="module" src="js/views/OperationsTable.js"></script> 
+</head> 
+<body> 
+    <app-header></app-header> 
+ 
+    <div id="app"> 
+        <stock-table></stock-table> 
+ 
+        <div id="totals"> 
+            <h2>Programação Total</h2> 
+            <p>Insira os volumes totais programados. Use valores positivos para recebimento e negativos para envio.</p> 
+            <label for="totalNavio">Total Programado para Navio (m³):</label> 
+            <input type="number" id="totalNavio" value="0"> 
+            <label for="totalOlapa">Total Programado para Olapa (m³):</label> 
+            <input type="number" id="totalOlapa" value="0"> 
+            <button id="recalculateButton">Recalcular Quantidades</button> 
+        </div> 
+ 
+        <operation-form></operation-form> 
+ 
+        <operations-table></operations-table> 
+    </div> 
+ 
+    <app-footer></app-footer> 
+ 
+    <script type="module" src="js/controllers/main.js"></script> 
+</body> 
+</html> 
+File: ./js/config/config.js
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
+// Configurações globais da aplicação
+File: ./js/controllers/addOperation.js
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
+// addOperation.js 
+ 
+import { getStockData, saveStockData } from '../models/stockData.js'; 
+import { addOperation as addOperationToState } from '../models/operations.js'; 
+import { validateOperation } from '../utils/validation.js'; 
+import { formatDateBR } from '../utils/dateUtils.js'; 
+import { updateFalta } from './updateFalta.js'; 
+import { sortOperations } from './sortOperations.js'; 
+import { checkOverlap } from './checkOverlap.js'; 
+ 
+export function addOperation() { 
+  console.log('Função addOperation iniciada'); 
+ 
+  const formData = getFormData(); 
+  console.log('Dados coletados:', formData); 
+ 
+  const validationResult = validateOperation(formData); 
+  if (!validationResult.isValid) { 
+    alert(validationResult.errors.join('\n')); 
+    return; 
+  } 
+ 
+  const stockData = getStockData(); 
+  console.log('Dados do estoque recuperados:', stockData); 
+ 
+  const tankData = stockData.find(item => item.tanque.trim() === formData.tank.trim()); 
+  if (!tankData) { 
+    alert('Dados do tanque não encontrados.'); 
+    return; 
+  } 
+ 
+  const result = addOperationToState(formData); 
+  if (!result.success) { 
+    alert(result.error); 
+    return; 
+  } 
+ 
+  updateUI(result.operation, tankData); 
+  updateStockData(tankData, formData); 
+  updateFalta(); 
+  sortOperations(); 
+  checkOverlap(); 
+ 
+  console.log('Função addOperation concluída'); 
+} 
+ 
+ 
+function getFormData() { 
+  const operationForm = document.querySelector('operation-form'); 
+  if (!operationForm) { 
+    console.error('Componente operation-form não encontrado'); 
+    return null; 
+  } 
+  return operationForm.getFormData(); 
+} 
+ 
+function checkTankCapacity(tankData, formData) { 
+  if (formData.direction === 'enviar' && formData.volume > tankData.disponivelEnvio) { 
+    alert(`Volume excede a capacidade disponível para envio (${tankData.disponivelEnvio.toFixed(2)} m³).`); 
+    return false; 
+  } 
+ 
+  if (formData.direction === 'receber' && formData.volume > tankData.espacoRecebimento) { 
+    alert(`Volume excede o espaço disponível para recebimento (${tankData.espacoRecebimento.toFixed(2)} m³).`); 
+    return false; 
+  } 
+ 
+  return true; 
+} 
+ 
+function calculateEndTime(formData) { 
+  const startTime = new Date(formData.startTime); 
+  return new Date(startTime.getTime() + (formData.volume / formData.flowRate) * 60 * 60 * 1000); 
+} 
+ 
+function updateUI(newOperation, tankData) { 
+  const operationsTableBody = document.querySelector('#operationsTable tbody'); 
+  if (operationsTableBody) { 
+    const newRow = createOperationRow(newOperation, tankData); 
+    operationsTableBody.appendChild(newRow); 
+    console.log('Nova linha adicionada à tabela'); 
+    console.log('Conteúdo da nova linha:', newRow.innerHTML); 
+  } else { 
+    console.error('Elemento #operationsTable tbody não encontrado'); 
+  } 
+} 
+ 
+function createOperationRow(operation, tankData) { 
+  const row = document.createElement('tr'); 
+  row.innerHTML = ` 
+    <td>${tankData.produto}</td> 
+    <td>${operation.tank}</td> 
+    <td>${tankData.disponivelEnvio.toFixed(2)}</td> 
+    <td>${tankData.espacoRecebimento.toFixed(2)}</td> 
+    <td>${operation.flowRate.toFixed(2)}</td> 
+    <td>${operation.direction}</td> 
+    <td>${operation.operationType}</td> 
+    <td>${formatDateBR(operation.startTime)}</td> 
+    <td>${formatDateBR(operation.endTime)}</td> 
+    <td>${operation.volumeOperado.toFixed(2)}</td> 
+    <td>0</td> 
+    <td>0</td> 
+    <td> 
+      <button class="copyOperation" data-id="${operation.id}">Copiar</button> 
+      <button class="deleteOperation" data-id="${operation.id}">Deletar</button> 
+    </td> 
+  `; 
+  return row; 
+} 
+ 
+function updateStockData(tankData, formData) { 
+  if (formData.direction === 'enviar') { 
+    tankData.disponivelEnvio -= formData.volume; 
+    tankData.espacoRecebimento += formData.volume; 
+  } else { 
+    tankData.disponivelEnvio += formData.volume; 
+    tankData.espacoRecebimento -= formData.volume; 
+  } 
+  saveStockData(getStockData()); 
+} 
+ 
+
+export default addOperation; 
+File: ./js/controllers/checkOverlap.js
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
+// checkOverlap.js 
+ 
+import { getOperations } from '../models/operations.js'; 
+import { isOverlapping } from '../utils/dateUtils.js'; 
+ 
+/** 
+ * Verifica sobreposições entre operações no mesmo tanque 
+ * @returns {Array} Array de objetos representando as sobreposições encontradas 
+ */ 
+export function checkOverlap() { 
+  const operations = getOperations(); 
+  const overlaps = []; 
+ 
+  for (let i = 0; i < operations.length; i++) { 
+    for (let j = i + 1; j < operations.length; j++) { 
+      if (operations[i].tank === operations[j].tank) { 
+        if (isOverlapping( 
+          operations[i].startTime, operations[i].endTime, 
+          operations[j].startTime, operations[j].endTime 
+        )) { 
+          overlaps.push({ 
+            operation1: operations[i], 
+            operation2: operations[j] 
+          }); 
+        } 
+      } 
+    } 
+  } 
+ 
+  return overlaps; 
+} 
+ 
+/** 
+ * Atualiza a UI para destacar operações sobrepostas 
+ */ 
+export function updateOverlapUI() { 
+  const overlaps = checkOverlap(); 
+  const operationsTableBody = document.querySelector('#operationsTable tbody'); 
+ 
+  // Remove todas as classes de sobreposição existentes 
+  operationsTableBody.querySelectorAll('tr').forEach(row => { 
+    row.classList.remove('encavalado'); 
+  }); 
+ 
+  // Adiciona a classe 'encavalado' às operações sobrepostas 
+  overlaps.forEach(overlap => { 
+    const row1 = operationsTableBody.querySelector(`tr[data-id="${overlap.operation1.id}"]`); 
+    const row2 = operationsTableBody.querySelector(`tr[data-id="${overlap.operation2.id}"]`); 
+    if (row1) row1.classList.add('encavalado'); 
+    if (row2) row2.classList.add('encavalado'); 
+  }); 
+ 
+  // Exibe um alerta se houver sobreposições 
+  if (overlaps.length > 0) { 
+    alert(`Atenção: Foram detectadas ${overlaps.length} sobreposições de operações.`); 
+  } 
+} 
+ 
+/** 
+ * Inicializa os listeners para verificação de sobreposição 
+ */ 
+export function setupOverlapListeners() { 
+  const addOperationButton = document.getElementById('addOperationButton'); 
+  addOperationButton.addEventListener('click', updateOverlapUI); 
+ 
+  // Adicione outros listeners conforme necessário, por exemplo, para edição de operações 
+} 
+ 
+export default { 
+  checkOverlap, 
+  updateOverlapUI, 
+  setupOverlapListeners 
+}; 
+File: ./js/controllers/clearForm.js
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
+// clearForm.js 
+ 
+/** 
+ * Limpa todos os campos do formulário de adição de operação 
+ */ 
+export function clearForm() { 
+    document.getElementById('tank').value = ''; 
+    document.getElementById('volume').value = ''; 
+    document.getElementById('flowRate').value = ''; 
+    document.getElementById('direction').value = 'receber'; 
+    document.getElementById('operationType').value = 'navio'; 
+    document.getElementById('startTime').value = ''; 
+  } 
+   
+  /** 
+   * Reseta o formulário para seu estado inicial 
+   */ 
+  export function resetForm() { 
+    clearForm(); 
+    // Adicione aqui qualquer lógica adicional para resetar o estado do formulário 
+    console.log('Formulário resetado'); 
+  } 
+   
+  export default { 
+    clearForm, 
+    resetForm 
+  }; 
+  File: ./js/controllers/importacao.js
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
+// importacao.js  
+ 
+import { saveInitialStock } from '../services/storage.js';  
+import { validateTankData } from '../utils/validation.js';  
+import { updateVisualizacao } from './visualizacao.js';  
+ 
+// Variável global para armazenar os dados do estoque  
+let globalStockData = [];  
+ 
+/**  
+ * Configura os eventos de importação para o drag and drop e seleção de arquivo  
+ */  
+export function setupImportacao() {  
+  const dropZone = document.querySelector('drop-zone');  
+  if (!dropZone) { 
+    console.error('Elemento <drop-zone> não encontrado'); 
+    return; 
+  } 
+ 
+  // Adiciona o listener para o evento personalizado 'fileSelected' 
+  dropZone.addEventListener('fileSelected', handleFile); 
+}  
+
+export function handleFile(file) { 
+  const reader = new FileReader(); 
+  reader.onload = function(e) { 
+    try { 
+      const data = new Uint8Array(e.target.result); 
+      const workbook = XLSX.read(data, {type: 'array'}); 
+      const firstSheetName = workbook.SheetNames[0]; 
+      const worksheet = workbook.Sheets[firstSheetName]; 
+      processExcelData(worksheet); 
+    } catch (error) { 
+      console.error('Erro ao processar o arquivo:', error); 
+      alert('Ocorreu um erro ao processar o arquivo. Por favor, verifique se é um arquivo Excel válido.'); 
+    } 
+  }; 
+  reader.readAsArrayBuffer(file); 
+} 
+ 
+ 
+/**  
+ * Processa os dados do Excel e armazena no globalStockData  
+ * @param {Object} worksheet - A planilha do Excel a ser processada  
+ */  
+function processExcelData(worksheet) {  
+  globalStockData = []; // Limpa os dados anteriores  
+  for (let i = 11; i <= 80; i++) {  
+    const produto = getCellValue(worksheet, `D${i}`);  
+    const tanque = getCellValue(worksheet, `E${i}`);  
+    const disponivelEnvio = parseFloat(getCellValue(worksheet, `V${i}`));  
+    const espacoRecebimento = parseFloat(getCellValue(worksheet, `Y${i}`));  
+ 
+    // Adiciona apenas linhas com dados válidos  
+    if (tanque && tanque !== 'TOTAL' && !isNaN(disponivelEnvio) && !isNaN(espacoRecebimento)) {  
+      const tankData = { produto, tanque, disponivelEnvio, espacoRecebimento };  
+      const validation = validateTankData(tankData);  
+      if (validation.isValid) {  
+        globalStockData.push(tankData);  
+        document.dispatchEvent(new CustomEvent('fileProcessed', {
+            detail: {
+                success: true,
+                data: globalStockData
+            }
+        }));
+      } else {  
+        console.warn(`Dados inválidos para o tanque ${tanque}:`, validation.errors);  
+      }  
+    }  
+  }  
+  updateVisualizacao(globalStockData);  
+  saveInitialStock(globalStockData);  
+  console.log('Dados importados:', globalStockData);  
+}  
+ 
+/**  
+ * Obtém o valor de uma célula específica da planilha  
+ * @param {Object} worksheet - A planilha do Excel  
+ * @param {string} cellAddress - O endereço da célula (ex: 'A1')  
+ * @returns {string} O valor da célula ou uma string vazia se não existir  
+ */  
+function getCellValue(worksheet, cellAddress) {  
+  const cell = worksheet[cellAddress];  
+  return cell ? cell.v : '';  
+}  
+ 
+export { globalStockData };  
+File: ./js/controllers/main.js
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
+// main.js 
+ 
+import { loadOperations, sortOperations, calculateFalta, checkOverlap } from ../models/operations.js'; 
+import { getInitialStockData, getCurrentStockData, updateStockDisplay } from ../models/stockData.js'; 
+import { setupFaltaListeners, updateFalta } from ./updateFalta.js'; 
+import { getFromLocalStorage } from './services/storage.js'; 
+ 
+document.addEventListener('DOMContentLoaded', () => { 
+    initializeComponents(); 
+    loadInitialData(); 
+    setupEventListeners(); 
+}); 
+ 
+function initializeComponents() { 
+    const app = document.getElementById('app'); 
+    app.innerHTML = ` 
+        <stock-table></stock-table> 
+        <div id="totals"> 
+            <h2>Programação Total</h2> 
+            <p>Insira os volumes totais programados. Use valores positivos para recebimento e negativos para envio.</p> 
+            <label for="totalNavio">Total Programado para Navio (m³):</label> 
+            <input type="number" id="totalNavio" value="0"> 
+            <label for="totalOlapa">Total Programado para Olapa (m³):</label> 
+            <input type="number" id="totalOlapa" value="0"> 
+            <button id="recalculateButton">Recalcular Quantidades</button> 
+        </div> 
+        <div id="faltaDisplay"></div> 
+        <operation-form></operation-form> 
+        <operations-table></operations-table> 
+    `; 
+} 
+ 
+function setupEventListeners() { 
+    const operationForm = document.querySelector('operation-form'); 
+    const operationsTable = document.querySelector('operations-table'); 
+    const stockTable = document.querySelector('stock-table'); 
+ 
+    operationForm.addEventListener('operationAdded', handleOperationAdded); 
+    operationsTable.addEventListener('operationDeleted', handleOperationDeleted); 
+    operationsTable.addEventListener('operationCopied', handleOperationCopied); 
+ 
+    setupFaltaListeners(); 
+ 
+    document.addEventListener('stockUpdated', () => { 
+        stockTable.updateData(); 
+        operationsTable.updateTable(); 
+    }); 
+ 
+    document.getElementById('recalculateButton').addEventListener('click', updateFalta); 
+} 
+ 
+function loadInitialData() { 
+    loadOperations(); 
+    const stockData = getFromLocalStorage('stockData') || []; 
+    const selectedStockData = stockData.filter(item => item.selected); 
+     
+    document.querySelector('stock-table').updateData(selectedStockData, selectedStockData); 
+    document.querySelector('operations-table').updateTable(); 
+ 
+    updateStockDisplay(); 
+    updateFalta(); 
+} 
+ 
+function handleOperationAdded() { 
+    document.querySelector('operations-table').updateTable(); 
+    updateFalta(); 
+    updateStockDisplay(); 
+  } 
+   
+  function handleOperationDeleted() { 
+    document.querySelector('operations-table').updateTable(); 
+    updateFalta(); 
+    updateStockDisplay(); 
+  } 
+   
+  function handleOperationCopied() { 
+    document.querySelector('operations-table').updateTable(); 
+    updateFalta(); 
+    updateStockDisplay(); 
+  } 
+ 
+export { updateFalta }; 
+File: ./js/controllers/sortOperations.js
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
+// sortOperations.js  
+  
+import { saveOperations } from '../models/operations.js';
+import { getOperations } from '../models/operations.js';
+import { parseDateBR } from '../utils/dateUtils.js';  
+  
+/**  
+ * Ordena as operações por data de início  
+ */  
+export function sortOperations() { 
+  console.log('Iniciando ordenação das operações'); 
+  const operations = getOperations(); 
+ 
+  operations.sort((a, b) => { 
+    const aStartTime = new Date(a.startTime); 
+    const bStartTime = new Date(b.startTime); 
+    return aStartTime - bStartTime; 
+  }); 
+ 
+  saveOperations(operations); 
+  console.log('Ordenação concluída'); 
+  return operations; 
+} 
+  
+  
+/**  
+ * Cria uma linha da tabela para uma operação  
+ * @param {Object} operation - Dados da operação  
+ * @returns {HTMLTableRowElement} Elemento TR com os dados da operação  
+ */  
+function createOperationRow(operation) {  
+  const row = document.createElement('tr');  
+  row.innerHTML = `  
+    <td>${operation.produto}</td>  
+    <td>${operation.tank}</td>  
+    <td>${operation.disponivelEnvio.toFixed(2)}</td>  
+    <td>${operation.espacoRecebimento.toFixed(2)}</td>  
+    <td>${operation.flowRate.toFixed(2)}</td>  
+    <td>${operation.direction}</td>  
+    <td>${operation.operationType}</td>  
+    <td>${formatDateForDisplay(operation.startTime)}</td>  
+    <td>${formatDateForDisplay(operation.endTime)}</td>  
+    <td>${operation.volumeOperado.toFixed(2)}</td>  
+    <td>${operation.faltaNavio.toFixed(2)}</td>  
+    <td>${operation.faltaOlapa.toFixed(2)}</td>  
+    <td>  
+      <button class="copyOperation" data-id="${operation.id}">Copiar</button>  
+      <button class="deleteOperation" data-id="${operation.id}">Deletar</button>  
+    </td>  
+  `;  
+  return row;  
+}  
+  
+/**  
+ * Formata uma data para exibição  
+ * @param {Date|string} date - A data a ser formatada  
+ * @returns {string} A data formatada como string  
+ */  
+function formatDateForDisplay(date) {  
+  const dateObj = date instanceof Date ? date : new Date(date);  
+  return dateObj.toLocaleString('pt-BR', {  
+    year: 'numeric',  
+    month: '2-digit',  
+    day: '2-digit',  
+    hour: '2-digit',  
+    minute: '2-digit',  
+    hour12: false  
+  });  
+}  
+  
+export default sortOperations;  
+ File: ./js/controllers/transferencia.js
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
+// transferencia.js 
+ 
+import { getStockData } from '../models/stockData.js'; 
+import { saveToLocalStorage, getFromLocalStorage } from '../services/storage.js'; 
+ 
+/** 
+ * Configura o evento de clique para o botão de transferência 
+ */ 
+export function setupTransferencia() { 
+  const transferButton = document.getElementById('transferButton'); 
+  transferButton.addEventListener('click', transferirDadosSelecionados); 
+} 
+ 
+/** 
+ * Transfere os dados selecionados para o planejador 
+ */ 
+function transferirDadosSelecionados() { 
+  const checkboxes = document.querySelectorAll('#stockTable input[type="checkbox"]:checked'); 
+  const dadosSelecionados = Array.from(checkboxes).map(checkbox => { 
+      const row = checkbox.closest('tr'); 
+      return { 
+          produto: row.cells[1].textContent, 
+          tanque: row.cells[2].textContent, 
+          disponivelEnvio: parseFloat(row.cells[3].textContent), 
+          espacoRecebimento: parseFloat(row.cells[4].textContent), 
+          selected: true 
+      }; 
+  }); 
+
+  if (dadosSelecionados.length === 0) { 
+      alert('Por favor, selecione pelo menos um item para transferir.'); 
+      return; 
+  } 
+
+  saveToLocalStorage('stockData', dadosSelecionados); 
+
+  alert('Dados transferidos com sucesso!'); 
+  window.location.href = '../index.html'; 
+} 
+
+ 
+/** 
+ * Atualiza o estado de seleção dos checkboxes 
+ */ 
+export function updateSelectionState() { 
+  const checkboxes = document.querySelectorAll('#stockTable input[type="checkbox"]'); 
+  const transferButton = document.getElementById('transferButton'); 
+  const stockData = getFromLocalStorage('stockData') || []; 
+   
+  checkboxes.forEach(checkbox => { 
+    const row = checkbox.closest('tr'); 
+    const tanque = row.cells[2].textContent; 
+    const item = stockData.find(i => i.tanque === tanque); 
+    if (item) { 
+      checkbox.checked = item.selected; 
+    } 
+     
+    checkbox.addEventListener('change', (event) => { 
+      const anyChecked = Array.from(checkboxes).some(cb => cb.checked); 
+      transferButton.disabled = !anyChecked; 
+ 
+      // Atualiza o estado de seleção no localStorage 
+      const updatedStockData = stockData.map(i => { 
+        if (i.tanque === tanque) { 
+          return { ...i, selected: event.target.checked }; 
+        } 
+        return i; 
+      }); 
+      saveToLocalStorage('stockData', updatedStockData); 
+    }); 
+  }); 
+ 
+  // Inicializa o estado do botão 
+  const anyChecked = Array.from(checkboxes).some(cb => cb.checked); 
+  transferButton.disabled = !anyChecked; 
+} 
+ 
+export default { 
+  setupTransferencia, 
+  updateSelectionState 
+}; 
+File: ./js/controllers/updateFalta.js
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
+// updateFalta.js 
+ 
+import { getOperations } from '../models/operations.js'; 
+import { formatNumber } from '../utils/numberUtils.js'; 
+ 
+export function updateFalta() { 
+  const totalNavio = parseFloat(document.getElementById('totalNavio').value) || 0; 
+  const totalOlapa = parseFloat(document.getElementById('totalOlapa').value) || 0; 
+  const operations = getOperations(); 
+  const operationsTable = document.querySelector('operations-table'); 
+ 
+  if (!operationsTable) { 
+    console.error('Componente operations-table não encontrado'); 
+    return; 
+  } 
+ 
+  let faltaNavio = totalNavio; 
+  let faltaOlapa = totalOlapa; 
+ 
+  operations.forEach((operation, index) => { 
+    const row = operationsTable.shadowRoot.querySelector(`#operationsTable tbody tr:nth-child(${index + 1})`); 
+    if (!row) { 
+      console.error(`Linha ${index + 1} não encontrada na tabela de operações`); 
+      return; 
+    } 
+ 
+    row.classList.remove('navio', 'olapa'); 
+     
+    const volumeOperado = operation.volumeOperado; 
+ 
+    if (operation.operationType === 'navio') { 
+      faltaNavio -= volumeOperado; 
+      row.classList.add('navio'); 
+    } else if (operation.operationType === 'olapa') { 
+      faltaOlapa -= volumeOperado; 
+      row.classList.add('olapa'); 
+    } 
+ 
+    // Atualiza as células de falta na linha 
+    row.cells[10].textContent = formatNumber(faltaNavio); 
+    row.cells[11].textContent = formatNumber(faltaOlapa); 
+  }); 
+ 
+  // Atualiza o total restante 
+  updateTotalRestante(faltaNavio, faltaOlapa); 
+} 
+
+ 
+function updateTotalRestante(faltaNavio, faltaOlapa) { 
+    const faltaElement = document.getElementById('faltaDisplay'); 
+    if (faltaElement) { 
+        faltaElement.textContent = `Falta para Navio: ${formatNumber(faltaNavio)} m³, Falta para Olapa: ${formatNumber(faltaOlapa)} m³`; 
+    } 
+} 
+ 
+export function setupFaltaListeners() { 
+    const totalNavioInput = document.getElementById('totalNavio'); 
+    const totalOlapaInput = document.getElementById('totalOlapa'); 
+ 
+    if (totalNavioInput && totalOlapaInput) { 
+        [totalNavioInput, totalOlapaInput].forEach(input => { 
+            input.addEventListener('change', updateFalta); 
+        }); 
+    } else { 
+        console.error('Elementos de input para totais não encontrados'); 
+    } 
+} 
+ 
+export default { 
+    updateFalta, 
+    setupFaltaListeners 
+}; 
+File: ./js/controllers/visualizacao.js
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
+// visualizacao.js 
+ 
+import { getStockData } from '../models/stockData.js'; 
+ 
+/** 
+ * Atualiza a visualização da tabela de estoque 
+ * @param {Array} stockData - Os dados do estoque a serem exibidos 
+ */ 
+export function updateVisualizacao(stockData = null) { 
+  const tableBody = document.querySelector('#stockTable tbody'); 
+  tableBody.innerHTML = ''; 
+ 
+  // Se não for fornecido stockData, busca os dados do estado 
+  const dataToDisplay = stockData || getStockData(); 
+ 
+  dataToDisplay.forEach((item, index) => { 
+    const row = tableBody.insertRow(); 
+    row.innerHTML = ` 
+      <td><input type="checkbox" id="select-${index}" data-index="${index}"></td> 
+      <td>${item.produto}</td> 
+      <td>${item.tanque}</td> 
+      <td>${parseFloat(item.disponivelEnvio).toFixed(2)}</td> 
+      <td>${parseFloat(item.espacoRecebimento).toFixed(2)}</td> 
+    `; 
+  }); 
+} 
+ 
+/** 
+ * Configura os eventos de seleção na tabela de estoque 
+ */ 
+export function setupSelecao() { 
+  const stockTable = document.getElementById('stockTable'); 
+  stockTable.addEventListener('change', (event) => { 
+    if (event.target.type === 'checkbox') { 
+      updateSelecaoTotal(); 
+    } 
+  }); 
+} 
+ 
+/** 
+ * Atualiza o total de itens selecionados 
+ */ 
+function updateSelecaoTotal() { 
+  const checkboxes = document.querySelectorAll('#stockTable input[type="checkbox"]'); 
+  const totalSelecionado = Array.from(checkboxes).filter(cb => cb.checked).length; 
+  const totalItens = checkboxes.length; 
+ 
+  const selecaoInfo = document.getElementById('selecaoInfo'); 
+  if (selecaoInfo) { 
+    selecaoInfo.textContent = `${totalSelecionado} de ${totalItens} itens selecionados`; 
+  } 
+} 
+ 
+/** 
+ * Inicializa a visualização do estoque 
+ */ 
+export function initVisualizacao() { 
+  updateVisualizacao(); 
+  setupSelecao(); 
+ 
+  // Adiciona um elemento para mostrar informações sobre a seleção 
+  const app = document.getElementById('app'); 
+  const selecaoInfo = document.createElement('div'); 
+  selecaoInfo.id = 'selecaoInfo'; 
+  app.insertBefore(selecaoInfo, document.getElementById('transferButton')); 
+ 
+  updateSelecaoTotal(); 
+} 
+ 
+export default { 
+  updateVisualizacao, 
+  setupSelecao, 
+  initVisualizacao 
+}; 
+File: ./js/models/operations.js
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
+// operations.js 
+ 
+import { validateOperation, getTankData, updateStockDisplay } from './stockData.js'; 
+import { saveToLocalStorage, getFromLocalStorage } from '../services/storage.js'; 
+ 
+const OPERATIONS_KEY = 'plannedOperations'; 
+ 
+let operations = []; 
+ 
+// Carregar operações do localStorage 
+export function loadOperations() { 
+  operations = getFromLocalStorage(OPERATIONS_KEY) || []; 
+} 
+ 
+// Salvar operações no localStorage 
+export function saveOperations() { 
+  saveToLocalStorage(OPERATIONS_KEY, operations); 
+} 
+ 
+// Obter todas as operações 
+export function getOperations() { 
+  return [...operations]; 
+} 
+ 
+// Adicionar uma nova operação 
+export function addOperation(operationData) { 
+  const { tank, volume, flowRate, direction, operationType, startTime } = operationData; 
+    
+  if (!validateOperation(tank, volume, direction)) { 
+    return { success: false, error: 'Operação inválida: volume excede a capacidade do tanque' }; 
+  } 
+ 
+  const tankData = getTankData(tank); 
+  const startDateTime = new Date(startTime); 
+  const endDateTime = new Date(startDateTime.getTime() + (volume / flowRate) * 60 * 60 * 1000); 
+ 
+  const newOperation = { 
+    id: Date.now(), 
+    tank, 
+    produto: tankData.produto, 
+    volume, 
+    flowRate, 
+    direction, 
+    operationType, 
+    startTime: startDateTime, 
+    endTime: endDateTime, 
+    volumeOperado: direction === 'receber' ? volume : -volume 
+  }; 
+ 
+  operations.push(newOperation); 
+  saveOperations(); 
+  updateStockDisplay(); 
+ 
+  return { success: true, operation: newOperation }; 
+} 
+ 
+ 
+// Remover uma operação 
+export function deleteOperation(operationId) { 
+  operations = operations.filter(op => op.id !== operationId); 
+  saveOperations(); 
+  updateStockDisplay(); 
+} 
+ 
+// Atualizar uma operação existente 
+export function updateOperation(operationId, updatedData) { 
+  const index = operations.findIndex(op => op.id === operationId); 
+  if (index !== -1) { 
+    operations[index] = { ...operations[index], ...updatedData }; 
+    saveOperations(); 
+    updateStockDisplay(); 
+  } 
+} 
+ 
+// Copiar uma operação 
+export function copyOperation(operationId) { 
+  const operationToCopy = operations.find(op => op.id === operationId); 
+  if (operationToCopy) { 
+    const newOperation = { ...operationToCopy, id: Date.now() }; 
+    operations.push(newOperation); 
+    saveOperations(); 
+    updateStockDisplay(); 
+    return newOperation; 
+  } 
+  return null; 
+} 
+ 
+// Ordenar operações por data de início 
+export function sortOperations() { 
+  operations.sort((a, b) => a.startTime - b.startTime); 
+  saveOperations(); 
+} 
+ 
+// Calcular falta para navio e olapa 
+export function calculateFalta(totalNavio, totalOlapa) { 
+  let faltaNavio = totalNavio; 
+  let faltaOlapa = totalOlapa; 
+ 
+  operations.forEach(op => { 
+    if (op.operationType === 'navio') { 
+      faltaNavio -= op.volumeOperado; 
+    } else if (op.operationType === 'olapa') { 
+      faltaOlapa -= op.volumeOperado; 
+    } 
+  }); 
+ 
+  return { faltaNavio, faltaOlapa }; 
+} 
+ 
+// Verificar sobreposição de operações 
+export function checkOverlap() { 
+  const overlaps = []; 
+  for (let i = 0; i < operations.length; i++) { 
+    for (let j = i + 1; j < operations.length; j++) { 
+      if (operations[i].tank === operations[j].tank) { 
+        if ( 
+          (operations[i].startTime <= operations[j].endTime && operations[i].endTime >= operations[j].startTime) || 
+          (operations[j].startTime <= operations[i].endTime && operations[j].endTime >= operations[i].startTime) 
+        ) { 
+          overlaps.push([operations[i].id, operations[j].id]); 
+        } 
+      } 
+    } 
+  } 
+  return overlaps; 
+} 
+ 
+// Inicializar o módulo 
+loadOperations(); 
+ 
+export default { 
+  getOperations, 
+  addOperation, 
+  deleteOperation, 
+  updateOperation, 
+  copyOperation, 
+  sortOperations, 
+  calculateFalta, 
+  saveOperations,
+  checkOverlap 
+}; 
+File: ./js/models/stockData.js
+/**
+ * @fileoverview Descrição do arquivo
+ * @author Seu Nome
+ * @version 1.0.0
+ */
+
+// stockData.js 
+ 
+import { getOperations } from './operations.js'; 
+ 
+// Chave para armazenamento no localStorage 
+const INITIAL_STOCK_KEY = 'initialStockData'; 
+ 
+// Função para salvar o estoque inicial 
+export function saveInitialStockData(stockData) { 
+  localStorage.setItem(INITIAL_STOCK_KEY, JSON.stringify(stockData)); 
+} 
+ 
+// Função para obter o estoque inicial 
+export function getInitialStockData() { 
+  const data = localStorage.getItem(INITIAL_STOCK_KEY); 
+  return data ? JSON.parse(data) : []; 
+} 
+
+export function getStockData() { 
+  return getCurrentStockData(); 
+} 
+ 
+// Função para calcular o estoque final com base nas operações 
+export function getCurrentStockData() { 
+  const initialStock = getInitialStockData(); 
+  const operations = getOperations(); 
+ 
+  // Cria uma cópia profunda do estoque inicial 
+  const currentStock = JSON.parse(JSON.stringify(initialStock)); 
+ 
+  // Aplica todas as operações ao estoque atual 
+  operations.forEach(operation => { 
+    const tankIndex = currentStock.findIndex(item => item.tanque === operation.tanque); 
+    if (tankIndex !== -1) { 
+      if (operation.direction === 'receber') { 
+        currentStock[tankIndex].disponivelEnvio += operation.volume; 
+        currentStock[tankIndex].espacoRecebimento -= operation.volume; 
+      } else { 
+        currentStock[tankIndex].disponivelEnvio -= operation.volume; 
+        currentStock[tankIndex].espacoRecebimento += operation.volume; 
+      } 
+    } 
+  }); 
+ 
+  return currentStock; 
+} 
+
+export function saveStockData() {
+  updateStockDisplay()
+}
+
+export function updateCurrentStockDisplay() {
+  updateStockDisplay()
+}
+ 
+// Função para atualizar o estoque exibido 
+export function updateStockDisplay() { 
+  const currentStock = getCurrentStockData(); 
+  // Aqui você pode disparar um evento ou chamar uma função para atualizar a UI 
+  document.dispatchEvent(new CustomEvent('stockUpdated', { detail: currentStock })); 
+} 
+ 
+// Função para obter dados de um tanque específico 
+export function getTankData(tankName) { 
+  const currentStock = getCurrentStockData(); 
+  return currentStock.find(item => item.tanque === tankName); 
+} 
+ 
+// Função para validar se uma operação é possível 
+export function validateOperation(tankName, volume, direction) { 
+  const tankData = getTankData(tankName); 
+  if (!tankData) return false; 
+ 
+  if (direction === 'receber') { 
+    return tankData.espacoRecebimento >= volume; 
+  } else { 
+    return tankData.disponivelEnvio >= volume; 
+  } 
+} 
+ 
 File: ./js/services/storage.js
 /**
  * @fileoverview Descrição do arquivo
@@ -541,988 +1594,6 @@ export default {
   validateOperation, 
   validateTankData 
 }; 
-File: ./js/controllers/main.js
-/**
- * @fileoverview Descrição do arquivo
- * @author Seu Nome
- * @version 1.0.0
- */
-
-// main.js 
- 
-import { loadOperations, sortOperations, calculateFalta, checkOverlap } from ../models/operations.js'; 
-import { getInitialStockData, getCurrentStockData, updateStockDisplay } from ../models/stockData.js'; 
-import { setupFaltaListeners, updateFalta } from ./updateFalta.js'; 
-import { getFromLocalStorage } from './services/storage.js'; 
- 
-document.addEventListener('DOMContentLoaded', () => { 
-    initializeComponents(); 
-    loadInitialData(); 
-    setupEventListeners(); 
-}); 
- 
-function initializeComponents() { 
-    const app = document.getElementById('app'); 
-    app.innerHTML = ` 
-        <stock-table></stock-table> 
-        <div id="totals"> 
-            <h2>Programação Total</h2> 
-            <p>Insira os volumes totais programados. Use valores positivos para recebimento e negativos para envio.</p> 
-            <label for="totalNavio">Total Programado para Navio (m³):</label> 
-            <input type="number" id="totalNavio" value="0"> 
-            <label for="totalOlapa">Total Programado para Olapa (m³):</label> 
-            <input type="number" id="totalOlapa" value="0"> 
-            <button id="recalculateButton">Recalcular Quantidades</button> 
-        </div> 
-        <div id="faltaDisplay"></div> 
-        <operation-form></operation-form> 
-        <operations-table></operations-table> 
-    `; 
-} 
- 
-function setupEventListeners() { 
-    const operationForm = document.querySelector('operation-form'); 
-    const operationsTable = document.querySelector('operations-table'); 
-    const stockTable = document.querySelector('stock-table'); 
- 
-    operationForm.addEventListener('operationAdded', handleOperationAdded); 
-    operationsTable.addEventListener('operationDeleted', handleOperationDeleted); 
-    operationsTable.addEventListener('operationCopied', handleOperationCopied); 
- 
-    setupFaltaListeners(); 
- 
-    document.addEventListener('stockUpdated', () => { 
-        stockTable.updateData(); 
-        operationsTable.updateTable(); 
-    }); 
- 
-    document.getElementById('recalculateButton').addEventListener('click', updateFalta); 
-} 
- 
-function loadInitialData() { 
-    loadOperations(); 
-    const stockData = getFromLocalStorage('stockData') || []; 
-    const selectedStockData = stockData.filter(item => item.selected); 
-     
-    document.querySelector('stock-table').updateData(selectedStockData, selectedStockData); 
-    document.querySelector('operations-table').updateTable(); 
- 
-    updateStockDisplay(); 
-    updateFalta(); 
-} 
- 
-function handleOperationAdded() { 
-    document.querySelector('operations-table').updateTable(); 
-    updateFalta(); 
-    updateStockDisplay(); 
-  } 
-   
-  function handleOperationDeleted() { 
-    document.querySelector('operations-table').updateTable(); 
-    updateFalta(); 
-    updateStockDisplay(); 
-  } 
-   
-  function handleOperationCopied() { 
-    document.querySelector('operations-table').updateTable(); 
-    updateFalta(); 
-    updateStockDisplay(); 
-  } 
- 
-export { updateFalta }; 
-File: ./js/controllers/addOperation.js
-/**
- * @fileoverview Descrição do arquivo
- * @author Seu Nome
- * @version 1.0.0
- */
-
-// addOperation.js 
- 
-import { getStockData, saveStockData } from '../models/stockData.js'; 
-import { addOperation as addOperationToState } from '../models/operations.js'; 
-import { validateOperation } from '../utils/validation.js'; 
-import { formatDateBR } from '../utils/dateUtils.js'; 
-import { updateFalta } from './updateFalta.js'; 
-import { sortOperations } from './sortOperations.js'; 
-import { checkOverlap } from './checkOverlap.js'; 
- 
-export function addOperation() { 
-  console.log('Função addOperation iniciada'); 
- 
-  const formData = getFormData(); 
-  console.log('Dados coletados:', formData); 
- 
-  const validationResult = validateOperation(formData); 
-  if (!validationResult.isValid) { 
-    alert(validationResult.errors.join('\n')); 
-    return; 
-  } 
- 
-  const stockData = getStockData(); 
-  console.log('Dados do estoque recuperados:', stockData); 
- 
-  const tankData = stockData.find(item => item.tanque.trim() === formData.tank.trim()); 
-  if (!tankData) { 
-    alert('Dados do tanque não encontrados.'); 
-    return; 
-  } 
- 
-  const result = addOperationToState(formData); 
-  if (!result.success) { 
-    alert(result.error); 
-    return; 
-  } 
- 
-  updateUI(result.operation, tankData); 
-  updateStockData(tankData, formData); 
-  updateFalta(); 
-  sortOperations(); 
-  checkOverlap(); 
- 
-  console.log('Função addOperation concluída'); 
-} 
- 
- 
-function getFormData() { 
-  const operationForm = document.querySelector('operation-form'); 
-  if (!operationForm) { 
-    console.error('Componente operation-form não encontrado'); 
-    return null; 
-  } 
-  return operationForm.getFormData(); 
-} 
- 
-function checkTankCapacity(tankData, formData) { 
-  if (formData.direction === 'enviar' && formData.volume > tankData.disponivelEnvio) { 
-    alert(`Volume excede a capacidade disponível para envio (${tankData.disponivelEnvio.toFixed(2)} m³).`); 
-    return false; 
-  } 
- 
-  if (formData.direction === 'receber' && formData.volume > tankData.espacoRecebimento) { 
-    alert(`Volume excede o espaço disponível para recebimento (${tankData.espacoRecebimento.toFixed(2)} m³).`); 
-    return false; 
-  } 
- 
-  return true; 
-} 
- 
-function calculateEndTime(formData) { 
-  const startTime = new Date(formData.startTime); 
-  return new Date(startTime.getTime() + (formData.volume / formData.flowRate) * 60 * 60 * 1000); 
-} 
- 
-function updateUI(newOperation, tankData) { 
-  const operationsTableBody = document.querySelector('#operationsTable tbody'); 
-  if (operationsTableBody) { 
-    const newRow = createOperationRow(newOperation, tankData); 
-    operationsTableBody.appendChild(newRow); 
-    console.log('Nova linha adicionada à tabela'); 
-    console.log('Conteúdo da nova linha:', newRow.innerHTML); 
-  } else { 
-    console.error('Elemento #operationsTable tbody não encontrado'); 
-  } 
-} 
- 
-function createOperationRow(operation, tankData) { 
-  const row = document.createElement('tr'); 
-  row.innerHTML = ` 
-    <td>${tankData.produto}</td> 
-    <td>${operation.tank}</td> 
-    <td>${tankData.disponivelEnvio.toFixed(2)}</td> 
-    <td>${tankData.espacoRecebimento.toFixed(2)}</td> 
-    <td>${operation.flowRate.toFixed(2)}</td> 
-    <td>${operation.direction}</td> 
-    <td>${operation.operationType}</td> 
-    <td>${formatDateBR(operation.startTime)}</td> 
-    <td>${formatDateBR(operation.endTime)}</td> 
-    <td>${operation.volumeOperado.toFixed(2)}</td> 
-    <td>0</td> 
-    <td>0</td> 
-    <td> 
-      <button class="copyOperation" data-id="${operation.id}">Copiar</button> 
-      <button class="deleteOperation" data-id="${operation.id}">Deletar</button> 
-    </td> 
-  `; 
-  return row; 
-} 
- 
-function updateStockData(tankData, formData) { 
-  if (formData.direction === 'enviar') { 
-    tankData.disponivelEnvio -= formData.volume; 
-    tankData.espacoRecebimento += formData.volume; 
-  } else { 
-    tankData.disponivelEnvio += formData.volume; 
-    tankData.espacoRecebimento -= formData.volume; 
-  } 
-  saveStockData(getStockData()); 
-} 
- 
-
-export default addOperation; 
-File: ./js/controllers/checkOverlap.js
-/**
- * @fileoverview Descrição do arquivo
- * @author Seu Nome
- * @version 1.0.0
- */
-
-// checkOverlap.js 
- 
-import { getOperations } from '../models/operations.js'; 
-import { isOverlapping } from '../utils/dateUtils.js'; 
- 
-/** 
- * Verifica sobreposições entre operações no mesmo tanque 
- * @returns {Array} Array de objetos representando as sobreposições encontradas 
- */ 
-export function checkOverlap() { 
-  const operations = getOperations(); 
-  const overlaps = []; 
- 
-  for (let i = 0; i < operations.length; i++) { 
-    for (let j = i + 1; j < operations.length; j++) { 
-      if (operations[i].tank === operations[j].tank) { 
-        if (isOverlapping( 
-          operations[i].startTime, operations[i].endTime, 
-          operations[j].startTime, operations[j].endTime 
-        )) { 
-          overlaps.push({ 
-            operation1: operations[i], 
-            operation2: operations[j] 
-          }); 
-        } 
-      } 
-    } 
-  } 
- 
-  return overlaps; 
-} 
- 
-/** 
- * Atualiza a UI para destacar operações sobrepostas 
- */ 
-export function updateOverlapUI() { 
-  const overlaps = checkOverlap(); 
-  const operationsTableBody = document.querySelector('#operationsTable tbody'); 
- 
-  // Remove todas as classes de sobreposição existentes 
-  operationsTableBody.querySelectorAll('tr').forEach(row => { 
-    row.classList.remove('encavalado'); 
-  }); 
- 
-  // Adiciona a classe 'encavalado' às operações sobrepostas 
-  overlaps.forEach(overlap => { 
-    const row1 = operationsTableBody.querySelector(`tr[data-id="${overlap.operation1.id}"]`); 
-    const row2 = operationsTableBody.querySelector(`tr[data-id="${overlap.operation2.id}"]`); 
-    if (row1) row1.classList.add('encavalado'); 
-    if (row2) row2.classList.add('encavalado'); 
-  }); 
- 
-  // Exibe um alerta se houver sobreposições 
-  if (overlaps.length > 0) { 
-    alert(`Atenção: Foram detectadas ${overlaps.length} sobreposições de operações.`); 
-  } 
-} 
- 
-/** 
- * Inicializa os listeners para verificação de sobreposição 
- */ 
-export function setupOverlapListeners() { 
-  const addOperationButton = document.getElementById('addOperationButton'); 
-  addOperationButton.addEventListener('click', updateOverlapUI); 
- 
-  // Adicione outros listeners conforme necessário, por exemplo, para edição de operações 
-} 
- 
-export default { 
-  checkOverlap, 
-  updateOverlapUI, 
-  setupOverlapListeners 
-}; 
-File: ./js/controllers/clearForm.js
-/**
- * @fileoverview Descrição do arquivo
- * @author Seu Nome
- * @version 1.0.0
- */
-
-// clearForm.js 
- 
-/** 
- * Limpa todos os campos do formulário de adição de operação 
- */ 
-export function clearForm() { 
-    document.getElementById('tank').value = ''; 
-    document.getElementById('volume').value = ''; 
-    document.getElementById('flowRate').value = ''; 
-    document.getElementById('direction').value = 'receber'; 
-    document.getElementById('operationType').value = 'navio'; 
-    document.getElementById('startTime').value = ''; 
-  } 
-   
-  /** 
-   * Reseta o formulário para seu estado inicial 
-   */ 
-  export function resetForm() { 
-    clearForm(); 
-    // Adicione aqui qualquer lógica adicional para resetar o estado do formulário 
-    console.log('Formulário resetado'); 
-  } 
-   
-  export default { 
-    clearForm, 
-    resetForm 
-  }; 
-  File: ./js/controllers/sortOperations.js
-/**
- * @fileoverview Descrição do arquivo
- * @author Seu Nome
- * @version 1.0.0
- */
-
-// sortOperations.js  
-  
-import { saveOperations } from '../models/operations.js';
-import { getOperations } from '../models/operations.js';
-import { parseDateBR } from '../utils/dateUtils.js';  
-  
-/**  
- * Ordena as operações por data de início  
- */  
-export function sortOperations() { 
-  console.log('Iniciando ordenação das operações'); 
-  const operations = getOperations(); 
- 
-  operations.sort((a, b) => { 
-    const aStartTime = new Date(a.startTime); 
-    const bStartTime = new Date(b.startTime); 
-    return aStartTime - bStartTime; 
-  }); 
- 
-  saveOperations(operations); 
-  console.log('Ordenação concluída'); 
-  return operations; 
-} 
-  
-  
-/**  
- * Cria uma linha da tabela para uma operação  
- * @param {Object} operation - Dados da operação  
- * @returns {HTMLTableRowElement} Elemento TR com os dados da operação  
- */  
-function createOperationRow(operation) {  
-  const row = document.createElement('tr');  
-  row.innerHTML = `  
-    <td>${operation.produto}</td>  
-    <td>${operation.tank}</td>  
-    <td>${operation.disponivelEnvio.toFixed(2)}</td>  
-    <td>${operation.espacoRecebimento.toFixed(2)}</td>  
-    <td>${operation.flowRate.toFixed(2)}</td>  
-    <td>${operation.direction}</td>  
-    <td>${operation.operationType}</td>  
-    <td>${formatDateForDisplay(operation.startTime)}</td>  
-    <td>${formatDateForDisplay(operation.endTime)}</td>  
-    <td>${operation.volumeOperado.toFixed(2)}</td>  
-    <td>${operation.faltaNavio.toFixed(2)}</td>  
-    <td>${operation.faltaOlapa.toFixed(2)}</td>  
-    <td>  
-      <button class="copyOperation" data-id="${operation.id}">Copiar</button>  
-      <button class="deleteOperation" data-id="${operation.id}">Deletar</button>  
-    </td>  
-  `;  
-  return row;  
-}  
-  
-/**  
- * Formata uma data para exibição  
- * @param {Date|string} date - A data a ser formatada  
- * @returns {string} A data formatada como string  
- */  
-function formatDateForDisplay(date) {  
-  const dateObj = date instanceof Date ? date : new Date(date);  
-  return dateObj.toLocaleString('pt-BR', {  
-    year: 'numeric',  
-    month: '2-digit',  
-    day: '2-digit',  
-    hour: '2-digit',  
-    minute: '2-digit',  
-    hour12: false  
-  });  
-}  
-  
-export default sortOperations;  
- File: ./js/controllers/updateFalta.js
-/**
- * @fileoverview Descrição do arquivo
- * @author Seu Nome
- * @version 1.0.0
- */
-
-// updateFalta.js 
- 
-import { getOperations } from '../models/operations.js'; 
-import { formatNumber } from '../utils/numberUtils.js'; 
- 
-export function updateFalta() { 
-  const totalNavio = parseFloat(document.getElementById('totalNavio').value) || 0; 
-  const totalOlapa = parseFloat(document.getElementById('totalOlapa').value) || 0; 
-  const operations = getOperations(); 
-  const operationsTable = document.querySelector('operations-table'); 
- 
-  if (!operationsTable) { 
-    console.error('Componente operations-table não encontrado'); 
-    return; 
-  } 
- 
-  let faltaNavio = totalNavio; 
-  let faltaOlapa = totalOlapa; 
- 
-  operations.forEach((operation, index) => { 
-    const row = operationsTable.shadowRoot.querySelector(`#operationsTable tbody tr:nth-child(${index + 1})`); 
-    if (!row) { 
-      console.error(`Linha ${index + 1} não encontrada na tabela de operações`); 
-      return; 
-    } 
- 
-    row.classList.remove('navio', 'olapa'); 
-     
-    const volumeOperado = operation.volumeOperado; 
- 
-    if (operation.operationType === 'navio') { 
-      faltaNavio -= volumeOperado; 
-      row.classList.add('navio'); 
-    } else if (operation.operationType === 'olapa') { 
-      faltaOlapa -= volumeOperado; 
-      row.classList.add('olapa'); 
-    } 
- 
-    // Atualiza as células de falta na linha 
-    row.cells[10].textContent = formatNumber(faltaNavio); 
-    row.cells[11].textContent = formatNumber(faltaOlapa); 
-  }); 
- 
-  // Atualiza o total restante 
-  updateTotalRestante(faltaNavio, faltaOlapa); 
-} 
-
- 
-function updateTotalRestante(faltaNavio, faltaOlapa) { 
-    const faltaElement = document.getElementById('faltaDisplay'); 
-    if (faltaElement) { 
-        faltaElement.textContent = `Falta para Navio: ${formatNumber(faltaNavio)} m³, Falta para Olapa: ${formatNumber(faltaOlapa)} m³`; 
-    } 
-} 
- 
-export function setupFaltaListeners() { 
-    const totalNavioInput = document.getElementById('totalNavio'); 
-    const totalOlapaInput = document.getElementById('totalOlapa'); 
- 
-    if (totalNavioInput && totalOlapaInput) { 
-        [totalNavioInput, totalOlapaInput].forEach(input => { 
-            input.addEventListener('change', updateFalta); 
-        }); 
-    } else { 
-        console.error('Elementos de input para totais não encontrados'); 
-    } 
-} 
- 
-export default { 
-    updateFalta, 
-    setupFaltaListeners 
-}; 
-File: ./js/controllers/importacao.js
-/**
- * @fileoverview Descrição do arquivo
- * @author Seu Nome
- * @version 1.0.0
- */
-
-// importacao.js  
- 
-import { saveInitialStock } from '../services/storage.js';  
-import { validateTankData } from '../utils/validation.js';  
-import { updateVisualizacao } from './visualizacao.js';  
- 
-// Variável global para armazenar os dados do estoque  
-let globalStockData = [];  
- 
-/**  
- * Configura os eventos de importação para o drag and drop e seleção de arquivo  
- */  
-export function setupImportacao() {  
-  const dropZone = document.querySelector('drop-zone');  
-  if (!dropZone) { 
-    console.error('Elemento <drop-zone> não encontrado'); 
-    return; 
-  } 
- 
-  // Adiciona o listener para o evento personalizado 'fileSelected' 
-  dropZone.addEventListener('fileSelected', handleFile); 
-}  
-
-export function handleFile(file) { 
-  const reader = new FileReader(); 
-  reader.onload = function(e) { 
-    try { 
-      const data = new Uint8Array(e.target.result); 
-      const workbook = XLSX.read(data, {type: 'array'}); 
-      const firstSheetName = workbook.SheetNames[0]; 
-      const worksheet = workbook.Sheets[firstSheetName]; 
-      processExcelData(worksheet); 
-    } catch (error) { 
-      console.error('Erro ao processar o arquivo:', error); 
-      alert('Ocorreu um erro ao processar o arquivo. Por favor, verifique se é um arquivo Excel válido.'); 
-    } 
-  }; 
-  reader.readAsArrayBuffer(file); 
-} 
- 
- 
-/**  
- * Processa os dados do Excel e armazena no globalStockData  
- * @param {Object} worksheet - A planilha do Excel a ser processada  
- */  
-function processExcelData(worksheet) {  
-  globalStockData = []; // Limpa os dados anteriores  
-  for (let i = 11; i <= 80; i++) {  
-    const produto = getCellValue(worksheet, `D${i}`);  
-    const tanque = getCellValue(worksheet, `E${i}`);  
-    const disponivelEnvio = parseFloat(getCellValue(worksheet, `V${i}`));  
-    const espacoRecebimento = parseFloat(getCellValue(worksheet, `Y${i}`));  
- 
-    // Adiciona apenas linhas com dados válidos  
-    if (tanque && tanque !== 'TOTAL' && !isNaN(disponivelEnvio) && !isNaN(espacoRecebimento)) {  
-      const tankData = { produto, tanque, disponivelEnvio, espacoRecebimento };  
-      const validation = validateTankData(tankData);  
-      if (validation.isValid) {  
-        globalStockData.push(tankData);  
-      } else {  
-        console.warn(`Dados inválidos para o tanque ${tanque}:`, validation.errors);  
-      }  
-    }  
-  }  
-  updateVisualizacao(globalStockData);  
-  saveInitialStock(globalStockData);  
-  console.log('Dados importados:', globalStockData);  
-}  
- 
-/**  
- * Obtém o valor de uma célula específica da planilha  
- * @param {Object} worksheet - A planilha do Excel  
- * @param {string} cellAddress - O endereço da célula (ex: 'A1')  
- * @returns {string} O valor da célula ou uma string vazia se não existir  
- */  
-function getCellValue(worksheet, cellAddress) {  
-  const cell = worksheet[cellAddress];  
-  return cell ? cell.v : '';  
-}  
- 
-export { globalStockData };  
-File: ./js/controllers/transferencia.js
-/**
- * @fileoverview Descrição do arquivo
- * @author Seu Nome
- * @version 1.0.0
- */
-
-// transferencia.js 
- 
-import { getStockData } from '../models/stockData.js'; 
-import { saveToLocalStorage, getFromLocalStorage } from '../services/storage.js'; 
- 
-/** 
- * Configura o evento de clique para o botão de transferência 
- */ 
-export function setupTransferencia() { 
-  const transferButton = document.getElementById('transferButton'); 
-  transferButton.addEventListener('click', transferirDadosSelecionados); 
-} 
- 
-/** 
- * Transfere os dados selecionados para o planejador 
- */ 
-function transferirDadosSelecionados() { 
-  const checkboxes = document.querySelectorAll('#stockTable input[type="checkbox"]:checked'); 
-  const dadosSelecionados = Array.from(checkboxes).map(checkbox => { 
-      const row = checkbox.closest('tr'); 
-      return { 
-          produto: row.cells[1].textContent, 
-          tanque: row.cells[2].textContent, 
-          disponivelEnvio: parseFloat(row.cells[3].textContent), 
-          espacoRecebimento: parseFloat(row.cells[4].textContent), 
-          selected: true 
-      }; 
-  }); 
-
-  if (dadosSelecionados.length === 0) { 
-      alert('Por favor, selecione pelo menos um item para transferir.'); 
-      return; 
-  } 
-
-  saveToLocalStorage('stockData', dadosSelecionados); 
-
-  alert('Dados transferidos com sucesso!'); 
-  window.location.href = '../index.html'; 
-} 
-
- 
-/** 
- * Atualiza o estado de seleção dos checkboxes 
- */ 
-export function updateSelectionState() { 
-  const checkboxes = document.querySelectorAll('#stockTable input[type="checkbox"]'); 
-  const transferButton = document.getElementById('transferButton'); 
-  const stockData = getFromLocalStorage('stockData') || []; 
-   
-  checkboxes.forEach(checkbox => { 
-    const row = checkbox.closest('tr'); 
-    const tanque = row.cells[2].textContent; 
-    const item = stockData.find(i => i.tanque === tanque); 
-    if (item) { 
-      checkbox.checked = item.selected; 
-    } 
-     
-    checkbox.addEventListener('change', (event) => { 
-      const anyChecked = Array.from(checkboxes).some(cb => cb.checked); 
-      transferButton.disabled = !anyChecked; 
- 
-      // Atualiza o estado de seleção no localStorage 
-      const updatedStockData = stockData.map(i => { 
-        if (i.tanque === tanque) { 
-          return { ...i, selected: event.target.checked }; 
-        } 
-        return i; 
-      }); 
-      saveToLocalStorage('stockData', updatedStockData); 
-    }); 
-  }); 
- 
-  // Inicializa o estado do botão 
-  const anyChecked = Array.from(checkboxes).some(cb => cb.checked); 
-  transferButton.disabled = !anyChecked; 
-} 
- 
-export default { 
-  setupTransferencia, 
-  updateSelectionState 
-}; 
-File: ./js/controllers/visualizacao.js
-/**
- * @fileoverview Descrição do arquivo
- * @author Seu Nome
- * @version 1.0.0
- */
-
-// visualizacao.js 
- 
-import { getStockData } from '../models/stockData.js'; 
- 
-/** 
- * Atualiza a visualização da tabela de estoque 
- * @param {Array} stockData - Os dados do estoque a serem exibidos 
- */ 
-export function updateVisualizacao(stockData = null) { 
-  const tableBody = document.querySelector('#stockTable tbody'); 
-  tableBody.innerHTML = ''; 
- 
-  // Se não for fornecido stockData, busca os dados do estado 
-  const dataToDisplay = stockData || getStockData(); 
- 
-  dataToDisplay.forEach((item, index) => { 
-    const row = tableBody.insertRow(); 
-    row.innerHTML = ` 
-      <td><input type="checkbox" id="select-${index}" data-index="${index}"></td> 
-      <td>${item.produto}</td> 
-      <td>${item.tanque}</td> 
-      <td>${parseFloat(item.disponivelEnvio).toFixed(2)}</td> 
-      <td>${parseFloat(item.espacoRecebimento).toFixed(2)}</td> 
-    `; 
-  }); 
-} 
- 
-/** 
- * Configura os eventos de seleção na tabela de estoque 
- */ 
-export function setupSelecao() { 
-  const stockTable = document.getElementById('stockTable'); 
-  stockTable.addEventListener('change', (event) => { 
-    if (event.target.type === 'checkbox') { 
-      updateSelecaoTotal(); 
-    } 
-  }); 
-} 
- 
-/** 
- * Atualiza o total de itens selecionados 
- */ 
-function updateSelecaoTotal() { 
-  const checkboxes = document.querySelectorAll('#stockTable input[type="checkbox"]'); 
-  const totalSelecionado = Array.from(checkboxes).filter(cb => cb.checked).length; 
-  const totalItens = checkboxes.length; 
- 
-  const selecaoInfo = document.getElementById('selecaoInfo'); 
-  if (selecaoInfo) { 
-    selecaoInfo.textContent = `${totalSelecionado} de ${totalItens} itens selecionados`; 
-  } 
-} 
- 
-/** 
- * Inicializa a visualização do estoque 
- */ 
-export function initVisualizacao() { 
-  updateVisualizacao(); 
-  setupSelecao(); 
- 
-  // Adiciona um elemento para mostrar informações sobre a seleção 
-  const app = document.getElementById('app'); 
-  const selecaoInfo = document.createElement('div'); 
-  selecaoInfo.id = 'selecaoInfo'; 
-  app.insertBefore(selecaoInfo, document.getElementById('transferButton')); 
- 
-  updateSelecaoTotal(); 
-} 
- 
-export default { 
-  updateVisualizacao, 
-  setupSelecao, 
-  initVisualizacao 
-}; 
-File: ./js/models/operations.js
-/**
- * @fileoverview Descrição do arquivo
- * @author Seu Nome
- * @version 1.0.0
- */
-
-// operations.js 
- 
-import { validateOperation, getTankData, updateStockDisplay } from './stockData.js'; 
-import { saveToLocalStorage, getFromLocalStorage } from '../services/storage.js'; 
- 
-const OPERATIONS_KEY = 'plannedOperations'; 
- 
-let operations = []; 
- 
-// Carregar operações do localStorage 
-export function loadOperations() { 
-  operations = getFromLocalStorage(OPERATIONS_KEY) || []; 
-} 
- 
-// Salvar operações no localStorage 
-export function saveOperations() { 
-  saveToLocalStorage(OPERATIONS_KEY, operations); 
-} 
- 
-// Obter todas as operações 
-export function getOperations() { 
-  return [...operations]; 
-} 
- 
-// Adicionar uma nova operação 
-export function addOperation(operationData) { 
-  const { tank, volume, flowRate, direction, operationType, startTime } = operationData; 
-    
-  if (!validateOperation(tank, volume, direction)) { 
-    return { success: false, error: 'Operação inválida: volume excede a capacidade do tanque' }; 
-  } 
- 
-  const tankData = getTankData(tank); 
-  const startDateTime = new Date(startTime); 
-  const endDateTime = new Date(startDateTime.getTime() + (volume / flowRate) * 60 * 60 * 1000); 
- 
-  const newOperation = { 
-    id: Date.now(), 
-    tank, 
-    produto: tankData.produto, 
-    volume, 
-    flowRate, 
-    direction, 
-    operationType, 
-    startTime: startDateTime, 
-    endTime: endDateTime, 
-    volumeOperado: direction === 'receber' ? volume : -volume 
-  }; 
- 
-  operations.push(newOperation); 
-  saveOperations(); 
-  updateStockDisplay(); 
- 
-  return { success: true, operation: newOperation }; 
-} 
- 
- 
-// Remover uma operação 
-export function deleteOperation(operationId) { 
-  operations = operations.filter(op => op.id !== operationId); 
-  saveOperations(); 
-  updateStockDisplay(); 
-} 
- 
-// Atualizar uma operação existente 
-export function updateOperation(operationId, updatedData) { 
-  const index = operations.findIndex(op => op.id === operationId); 
-  if (index !== -1) { 
-    operations[index] = { ...operations[index], ...updatedData }; 
-    saveOperations(); 
-    updateStockDisplay(); 
-  } 
-} 
- 
-// Copiar uma operação 
-export function copyOperation(operationId) { 
-  const operationToCopy = operations.find(op => op.id === operationId); 
-  if (operationToCopy) { 
-    const newOperation = { ...operationToCopy, id: Date.now() }; 
-    operations.push(newOperation); 
-    saveOperations(); 
-    updateStockDisplay(); 
-    return newOperation; 
-  } 
-  return null; 
-} 
- 
-// Ordenar operações por data de início 
-export function sortOperations() { 
-  operations.sort((a, b) => a.startTime - b.startTime); 
-  saveOperations(); 
-} 
- 
-// Calcular falta para navio e olapa 
-export function calculateFalta(totalNavio, totalOlapa) { 
-  let faltaNavio = totalNavio; 
-  let faltaOlapa = totalOlapa; 
- 
-  operations.forEach(op => { 
-    if (op.operationType === 'navio') { 
-      faltaNavio -= op.volumeOperado; 
-    } else if (op.operationType === 'olapa') { 
-      faltaOlapa -= op.volumeOperado; 
-    } 
-  }); 
- 
-  return { faltaNavio, faltaOlapa }; 
-} 
- 
-// Verificar sobreposição de operações 
-export function checkOverlap() { 
-  const overlaps = []; 
-  for (let i = 0; i < operations.length; i++) { 
-    for (let j = i + 1; j < operations.length; j++) { 
-      if (operations[i].tank === operations[j].tank) { 
-        if ( 
-          (operations[i].startTime <= operations[j].endTime && operations[i].endTime >= operations[j].startTime) || 
-          (operations[j].startTime <= operations[i].endTime && operations[j].endTime >= operations[i].startTime) 
-        ) { 
-          overlaps.push([operations[i].id, operations[j].id]); 
-        } 
-      } 
-    } 
-  } 
-  return overlaps; 
-} 
- 
-// Inicializar o módulo 
-loadOperations(); 
- 
-export default { 
-  getOperations, 
-  addOperation, 
-  deleteOperation, 
-  updateOperation, 
-  copyOperation, 
-  sortOperations, 
-  calculateFalta, 
-  saveOperations,
-  checkOverlap 
-}; 
-File: ./js/models/stockData.js
-/**
- * @fileoverview Descrição do arquivo
- * @author Seu Nome
- * @version 1.0.0
- */
-
-// stockData.js 
- 
-import { getOperations } from './operations.js'; 
- 
-// Chave para armazenamento no localStorage 
-const INITIAL_STOCK_KEY = 'initialStockData'; 
- 
-// Função para salvar o estoque inicial 
-export function saveInitialStockData(stockData) { 
-  localStorage.setItem(INITIAL_STOCK_KEY, JSON.stringify(stockData)); 
-} 
- 
-// Função para obter o estoque inicial 
-export function getInitialStockData() { 
-  const data = localStorage.getItem(INITIAL_STOCK_KEY); 
-  return data ? JSON.parse(data) : []; 
-} 
-
-export function getStockData() { 
-  return getCurrentStockData(); 
-} 
- 
-// Função para calcular o estoque final com base nas operações 
-export function getCurrentStockData() { 
-  const initialStock = getInitialStockData(); 
-  const operations = getOperations(); 
- 
-  // Cria uma cópia profunda do estoque inicial 
-  const currentStock = JSON.parse(JSON.stringify(initialStock)); 
- 
-  // Aplica todas as operações ao estoque atual 
-  operations.forEach(operation => { 
-    const tankIndex = currentStock.findIndex(item => item.tanque === operation.tanque); 
-    if (tankIndex !== -1) { 
-      if (operation.direction === 'receber') { 
-        currentStock[tankIndex].disponivelEnvio += operation.volume; 
-        currentStock[tankIndex].espacoRecebimento -= operation.volume; 
-      } else { 
-        currentStock[tankIndex].disponivelEnvio -= operation.volume; 
-        currentStock[tankIndex].espacoRecebimento += operation.volume; 
-      } 
-    } 
-  }); 
- 
-  return currentStock; 
-} 
-
-export function saveStockData() {
-  updateStockDisplay()
-}
-
-export function updateCurrentStockDisplay() {
-  updateStockDisplay()
-}
- 
-// Função para atualizar o estoque exibido 
-export function updateStockDisplay() { 
-  const currentStock = getCurrentStockData(); 
-  // Aqui você pode disparar um evento ou chamar uma função para atualizar a UI 
-  document.dispatchEvent(new CustomEvent('stockUpdated', { detail: currentStock })); 
-} 
- 
-// Função para obter dados de um tanque específico 
-export function getTankData(tankName) { 
-  const currentStock = getCurrentStockData(); 
-  return currentStock.find(item => item.tanque === tankName); 
-} 
- 
-// Função para validar se uma operação é possível 
-export function validateOperation(tankName, volume, direction) { 
-  const tankData = getTankData(tankName); 
-  if (!tankData) return false; 
- 
-  if (direction === 'receber') { 
-    return tankData.espacoRecebimento >= volume; 
-  } else { 
-    return tankData.disponivelEnvio >= volume; 
-  } 
-} 
- 
 File: ./js/views/DropZone.js
 /**
  * @fileoverview Descrição do arquivo
@@ -1556,6 +1627,17 @@ class DropZone extends HTMLElement {
           margin-bottom: 30px; 
         } 
         #dropZone { 
+                min-height: 100px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.1em;
+                color: #666;
+            #dropZone::before {
+                content: "📁 ";
+                font-size: 1.5em;
+                margin-right: 10px;
+            }
           border: 2px dashed var(--border-color, #ddd); 
           border-radius: 4px; 
           padding: 20px; 
@@ -2227,14 +2309,6 @@ class StockTable extends HTMLElement {
 customElements.define('stock-table', StockTable); 
  
 export default StockTable; 
-File: ./js/config/config.js
-/**
- * @fileoverview Descrição do arquivo
- * @author Seu Nome
- * @version 1.0.0
- */
-
-// Configurações globais da aplicação
 File: ./pages/estoque.html
 <!DOCTYPE html> 
 <html lang="pt-BR"> 
@@ -2316,51 +2390,10 @@ File: ./pages/estoque.html
   
 </body> 
 </html> 
-File: ./index.html
-<!DOCTYPE html> 
-<html lang="pt-BR"> 
-<head> 
-    <meta charset="UTF-8"> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Planejador de Operações</title> 
-    <link rel="stylesheet" href="css/styles.css"> 
-    <link rel="icon" href="images/favicon.ico" type="image/x-icon"> 
-    <script type="module" src="js/views/Header.js"></script> 
-    <script type="module" src="js/views/Footer.js"></script> 
-    <script type="module" src="js/views/StockTable.js"></script> 
-    <script type="module" src="js/views/OperationForm.js"></script> 
-    <script type="module" src="js/views/OperationsTable.js"></script> 
-</head> 
-<body> 
-    <app-header></app-header> 
- 
-    <div id="app"> 
-        <stock-table></stock-table> 
- 
-        <div id="totals"> 
-            <h2>Programação Total</h2> 
-            <p>Insira os volumes totais programados. Use valores positivos para recebimento e negativos para envio.</p> 
-            <label for="totalNavio">Total Programado para Navio (m³):</label> 
-            <input type="number" id="totalNavio" value="0"> 
-            <label for="totalOlapa">Total Programado para Olapa (m³):</label> 
-            <input type="number" id="totalOlapa" value="0"> 
-            <button id="recalculateButton">Recalcular Quantidades</button> 
-        </div> 
- 
-        <operation-form></operation-form> 
- 
-        <operations-table></operations-table> 
-    </div> 
- 
-    <app-footer></app-footer> 
- 
-    <script type="module" src="js/controllers/main.js"></script> 
-</body> 
-</html> 
 File: ./restructure.sh
 #!/bin/bash
 
-echo "Iniciando reestruturação do projeto..."
+echo "Iniciando reestruturação completa do projeto..."
 
 # Criar estrutura de diretórios necessária
 mkdir -p js/{models,controllers,views,services,utils} \
@@ -2372,11 +2405,7 @@ mkdir -p js/{models,controllers,views,services,utils} \
 mv js/services/*.js js/services/ 2>/dev/null
 mv js/utils/*.js js/utils/ 2>/dev/null
 mv js/controllers/*.js js/controllers/ 2>/dev/null
-
-# Mover componentes de visualização
 mv js/views/*.js js/views/ 2>/dev/null
-
-# Mover modelos e controladores
 mv js/state/*.js js/models/ 2>/dev/null
 mv js/planejador/*.js js/controllers/ 2>/dev/null
 mv js/estoque/*.js js/controllers/ 2>/dev/null
@@ -2397,14 +2426,35 @@ update_js_imports() {
         s#from "\./estoque#from "./#g
         s#from '\''\./views/components#from '\''./#g
         s#from "\./views/components#from "./#g
+        s#from '../estoque/importacao#from '../controllers/importacao#g
+        s#from "../estoque/importacao#from "../controllers/importacao#g
     ' "$1"
 }
 
 export -f update_js_imports
 find js -type f -name "*.js" -exec bash -c 'update_js_imports "$0"' {} \;
 
-# Atualizar imports específicos em componentes
-sed -i 's#from "../estoque/importacao.js"#from "../controllers/importacao.js"#g' js/views/DropZone.js
+# Correções específicas no DropZone.js
+sed -i '
+    s#from "../estoque/importacao.js"#from "../controllers/importacao.js"#g
+    /#dropZone {/ {
+        a\
+                min-height: 100px;\
+                display: flex;\
+                align-items: center;\
+                justify-content: center;\
+                font-size: 1.1em;\
+                color: #666;
+    }
+    /#dropZone {/ {
+        a\
+            #dropZone::before {\
+                content: "📁 ";\
+                font-size: 1.5em;\
+                margin-right: 10px;\
+            }
+    }
+' js/views/DropZone.js
 
 # Atualizar referências nos arquivos HTML
 update_html_imports() {
@@ -2418,6 +2468,37 @@ update_html_imports() {
 
 export -f update_html_imports
 find . -type f -name "*.html" -exec bash -c 'update_html_imports "$0"' {} \;
+
+# Adicionar estilos globais
+echo "
+/* Estilos adicionais para drop-zone */
+drop-zone {
+    display: block !important;
+    margin: 20px 0;
+}
+
+#stockTable {
+    margin-top: 20px;
+    width: 100%;
+}
+
+#transferButton {
+    margin-top: 30px;
+    padding: 15px 30px;
+}" >> css/styles.css
+
+# Atualizar o evento de sucesso na importação
+sed -i '
+    /globalStockData\.push/ {
+        a\
+        document.dispatchEvent(new CustomEvent('\''fileProcessed'\'', {\
+            detail: {\
+                success: true,\
+                data: globalStockData\
+            }\
+        }));
+    }
+' js/controllers/importacao.js
 
 # Corrigir permissões
 chmod +x restructure.sh
@@ -2435,4 +2516,7 @@ find . -type f ! -name "gitpod.yml" ! -name "LICENSE" ! -name "README.md" \
 
 echo "Estrutura atualizada em estrutura_projeto.txt"
 echo "Reestruturação concluída com sucesso!"
-echo "Por favor, revise os resultados e execute testes manuais se necessário."
+echo "Recomendações finais:"
+echo "1. Execute 'npm install' se necessário"
+echo "2. Verifique o console do navegador para erros"
+echo "3. Teste todas as funcionalidades de importação"

@@ -219,3 +219,45 @@ tr.encavalado {
     font-size: 0.8em; 
   } 
 } 
+
+/* Estilos adicionais para drop-zone */
+drop-zone {
+    display: block !important;
+    margin: 20px 0;
+}
+
+#stockTable {
+    margin-top: 20px;
+    width: 100%;
+}
+
+#transferButton {
+    margin-top: 30px;
+    padding: 15px 30px;
+}
+
+    /* DropZone Enhancements */
+    drop-zone {
+        margin: 2rem auto;
+        width: 80%;
+        max-width: 600px;
+    }
+
+    #dropZone {
+        position: relative;
+        border: 3px dashed #007bff;
+        border-radius: 10px;
+        background-color: #f8fcff;
+        color: #666;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    #dropZone:hover {
+        border-color: #0056b3;
+        background-color: #f0faff;
+    }
+
+    #fileInput {
+        display: none;
+    }

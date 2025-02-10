@@ -6,7 +6,7 @@
 
 // DropZone.js
 
-import { handleFile } from './importacao.js'; 
+import { handleFile } from '../controllers/importacao.js'; 
 
 
 
@@ -30,6 +30,29 @@ class DropZone extends HTMLElement {
           margin-bottom: 30px; 
         } 
         #dropZone { 
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 2rem;
+            transition: all 0.3s ease;
+                min-height: 100px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.1em;
+                color: #666;
+        #dropZone::before {
+            content: "⬆️ Solte seu arquivo Excel aqui";
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+            #dropZone::before {
+                content: "📁 ";
+                font-size: 1.5em;
+                margin-right: 10px;
+            }
           border: 2px dashed var(--border-color, #ddd); 
           border-radius: 4px; 
           padding: 20px; 
@@ -38,7 +61,11 @@ class DropZone extends HTMLElement {
           cursor: pointer; 
           transition: background-color 0.3s; 
         } 
-        #dropZone.dragover { 
+        #dropZone.dragover {
+            background-color: #e6f7ff;
+            border-color: #007bff;
+            box-shadow: 0 0 15px rgba(0,123,255,0.2);
+        }
           background-color: var(--hover-color, #e9ecef); 
         } 
         #fileInput { 

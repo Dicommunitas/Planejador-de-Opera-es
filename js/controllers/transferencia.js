@@ -7,7 +7,7 @@
 // transferencia.js 
  
 import { getStockData } from '../models/stockData.js'; 
-import { saveToLocalStorage, getFromLocalStorage } from '../services/storage.js'; 
+import { saveToLocalStorage, getFromLocalStorage } from '../services/storage.js.js'; 
  
 /** 
  * Configura o evento de clique para o botão de transferência 

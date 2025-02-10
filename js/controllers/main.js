@@ -9,7 +9,7 @@
 import { loadOperations, sortOperations, calculateFalta, checkOverlap } from ../models/operations.js'; 
 import { getInitialStockData, getCurrentStockData, updateStockDisplay } from ../models/stockData.js'; 
 import { setupFaltaListeners, updateFalta } from ./updateFalta.js'; 
-import { getFromLocalStorage } from './services/storage.js'; 
+import { getFromLocalStorage } from ../services/storage.js.js'; 
  
 document.addEventListener('DOMContentLoaded', () => { 
     initializeComponents(); 

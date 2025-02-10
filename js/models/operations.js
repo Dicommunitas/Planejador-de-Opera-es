@@ -7,7 +7,7 @@
 // operations.js 
  
 import { validateOperation, getTankData, updateStockDisplay } from './stockData.js'; 
-import { saveToLocalStorage, getFromLocalStorage } from '../services/storage.js'; 
+import { saveToLocalStorage, getFromLocalStorage } from '../services/storage.js.js'; 
  
 const OPERATIONS_KEY = 'plannedOperations'; 
  
